@@ -904,61 +904,49 @@
 
   /* ── 列印樣式（PDF 匯出用） ── */
   @media print {
+    /* 核心：強制所有元素白底深色文字 */
+    * { color: #1a1a1a !important; background-color: transparent !important; border-color: #ccc !important; box-shadow: none !important; text-shadow: none !important; }
+
     /* 隱藏側欄和不需要的 UI */
     .sidebar, .toc-bar, .card-collapse-btn, .export-dropdown,
     .btn-view-results, .mobile-tabs, .freq-toggle,
     .empty-state, .confirm-overlay, header, .btn-example { display: none !important; }
 
-    /* 全版面給 main output — 白底深色文字 */
-    body { background: #fff !important; color: #1a1a1a !important; margin: 0; padding: 0; }
+    /* 全版面給 main output */
+    body { background: #fff !important; margin: 0; padding: 0; font-size: 12px; line-height: 1.5; }
     .layout { display: block !important; }
-    .main { margin: 0 !important; padding: 12px !important; width: 100% !important; max-width: 100% !important; min-height: auto !important; background: #fff !important; }
-    #main-output { background: #fff !important; }
+    .main { margin: 0 !important; padding: 12px !important; width: 100% !important; max-width: 100% !important; min-height: auto !important; }
 
-    /* 確保卡片展開且不被截斷 */
-    .card-body-collapsible { max-height: none !important; opacity: 1 !important; padding: 18px 20px !important; overflow: visible !important; }
-    .output-card { break-inside: avoid; margin-bottom: 10px; box-shadow: none !important; border: 1px solid #ccc !important; background: #fff !important; border-radius: 8px !important; }
+    /* 確保卡片展開 */
+    .card-body-collapsible { max-height: none !important; opacity: 1 !important; padding: 14px 18px !important; overflow: visible !important; }
+    .output-card { break-inside: avoid; margin-bottom: 10px; border: 1px solid #bbb !important; border-radius: 6px !important; overflow: hidden; }
 
-    /* 卡片標題 — 淺色底深色字 */
-    .card-header { background: #f0f2f5 !important; border-bottom: 1px solid #ddd !important; }
+    /* 卡片標題 — 加淺灰底讓它有區分 */
+    .card-header { background-color: #f0f2f5 !important; border-bottom: 1px solid #ccc !important; padding: 10px 16px !important; }
     .card-header::after { display: none !important; }
-    .card-title { color: #1a1a1a !important; }
-    .card-subtitle { color: #555 !important; }
-    .card-icon { background: rgba(0,0,0,0.08) !important; }
+    .card-title { font-weight: 800 !important; font-size: 1rem !important; }
+    .card-subtitle { color: #666 !important; }
+    .card-icon { background-color: rgba(0,0,0,0.06) !important; }
+    .card-body { padding: 14px 18px !important; }
 
-    /* 卡片內文 — 深色文字 */
-    .card-body, .card-body-collapsible { color: #1a1a1a !important; background: #fff !important; }
-
-    /* 所有文字顏色覆寫 */
-    .result-label, label, .field-required, .panel-title { color: #555 !important; }
-    p, span, div, li, td, th, h3, h4, h5, h6, strong, em, b { color: #1a1a1a !important; }
-    a { color: #0055aa !important; }
-
-    /* 標籤（tags） */
-    .tag-strategy, .tag-nonself, .tag-percent { background: #f0f0f0 !important; color: #333 !important; border: 1px solid #ccc !important; }
-
-    /* 通道 chip */
-    .channel-chip, .channel-chip.checked { background: #f5f5f5 !important; color: #333 !important; border: 1px solid #bbb !important; }
-
-    /* 能力組標題 */
-    .ability-group-title { background: #eee !important; color: #333 !important; }
+    /* 標籤 */
+    .tag-strategy, .tag-nonself, .tag-percent { background-color: #f0f0f0 !important; border: 1px solid #bbb !important; }
+    .ability-group-title { background-color: #eee !important; padding: 6px 12px !important; }
 
     /* 表格 */
-    table { border-collapse: collapse !important; }
-    table td, table th { border: 1px solid #ccc !important; color: #1a1a1a !important; background: #fff !important; padding: 6px 10px !important; }
-    table th { background: #f0f2f5 !important; font-weight: 700 !important; }
+    table { border-collapse: collapse !important; width: 100% !important; }
+    table td, table th { border: 1px solid #bbb !important; padding: 6px 10px !important; }
+    table th { background-color: #f0f2f5 !important; font-weight: 700 !important; }
+
+    /* 提示框保持可見 */
+    [style*="border-left"] { border-left: 3px solid #888 !important; padding: 10px 14px !important; background-color: #f8f8f8 !important; }
+    [style*="border-radius"][style*="padding"][style*="background"] { background-color: #f5f5f5 !important; border: 1px solid #ddd !important; }
 
     /* PDF 標題（只在列印時顯示） */
-    .pdf-print-header { display: block !important; color: #1a1a1a !important; border-bottom: 2px solid #333 !important; padding-bottom: 12px !important; margin-bottom: 16px !important; }
-    .pdf-print-header h2 { color: #1a1a1a !important; }
-    #pdf-print-meta { color: #555 !important; }
+    .pdf-print-header { display: block !important; border-bottom: 2px solid #333 !important; padding-bottom: 10px !important; margin-bottom: 14px !important; }
 
-    /* 確保 inline style 的顏色也被覆寫 */
-    [style*="color"] { color: #1a1a1a !important; }
-    [style*="background"] { background: transparent !important; }
-
-    /* 容器背景透明 */
-    .container, .layout, .main, .main-output { background: transparent !important; }
+    /* 連結 */
+    a { color: #0055aa !important; }
   }
 
   /* 平常隱藏 PDF 標題 */
@@ -7908,8 +7896,37 @@ function exportPDF() {
   if (meta) {
     meta.textContent = `解析對象：${userName}　｜　${new Date().toLocaleString('zh-TW')}`;
   }
+
+  // ── 列印前：強制修改 DOM inline style 為深色文字 ──
+  const mainOutput = document.getElementById('main-output');
+  const allEls = mainOutput.querySelectorAll('*');
+  const savedStyles = [];
+  allEls.forEach((el, i) => {
+    savedStyles[i] = el.getAttribute('style'); // 保存原始 style
+    const s = el.style;
+    if (s.color) s.color = '#1a1a1a';
+    if (s.backgroundColor) s.backgroundColor = 'transparent';
+    if (s.background && s.background !== 'none') {
+      // 保留 border-left 等效果的元素給淺灰底
+      if (s.borderLeft || el.getAttribute('style')?.includes('border-left')) {
+        s.backgroundColor = '#f5f5f5';
+      } else {
+        s.background = 'transparent';
+      }
+    }
+  });
+
   // 呼叫瀏覽器列印（使用者可在列印對話框中選擇「儲存為 PDF」）
   window.print();
+
+  // ── 列印後：還原所有 inline style ──
+  allEls.forEach((el, i) => {
+    if (savedStyles[i] !== null && savedStyles[i] !== undefined) {
+      el.setAttribute('style', savedStyles[i]);
+    } else {
+      el.removeAttribute('style');
+    }
+  });
 }
 
 // ══════════════════════════════════════════
