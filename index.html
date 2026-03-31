@@ -676,7 +676,7 @@
     .info-row { gap: 6px; }
     .tag { font-size: 0.86rem; padding: 6px 12px; }
     .channel-checks { gap: 5px; }
-    .channel-chip { padding: 8px 12px; font-size: 0.86rem; }
+    .channel-chip { padding: 12px 14px; font-size: 0.86rem; }
     .step { font-size: 0.93rem; }
     .step-num { width: 26px; height: 26px; font-size: 0.75rem; }
     .animal-display { padding: 12px 13px; border-radius: 12px; }
@@ -774,6 +774,114 @@
     .main.mob-hidden    { display: none !important; }
     .btn-view-results   { display: block; }
   }
+
+  /* ── 卡片摺疊 ── */
+  .card-collapse-btn {
+    position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7);
+    width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; transition: all 0.18s; z-index: 2;
+  }
+  .card-collapse-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
+  .card-body-collapsible { transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, padding 0.3s; overflow: hidden; }
+  .card-body-collapsible.collapsed { max-height: 0 !important; opacity: 0; padding-top: 0 !important; padding-bottom: 0 !important; }
+
+  /* ── 結果目錄導航 ── */
+  .toc-bar {
+    display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px;
+    background: rgba(24,28,38,0.95); border-radius: 14px;
+    border: 1px solid #2a3848; position: sticky; top: 22px; z-index: 50;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  @media (max-width: 900px) { .toc-bar { top: 52px; } }
+  .toc-item {
+    padding: 5px 12px; border-radius: 8px; font-size: 0.72rem; font-weight: 600;
+    color: #6a8898; background: #101820; border: 1px solid #1e2840;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap; letter-spacing: 0.03em;
+  }
+  .toc-item:hover { background: #182838; color: #90c0e0; border-color: #3a5878; }
+  .toc-actions { display: flex; gap: 6px; margin-left: auto; }
+  .toc-action-btn {
+    padding: 5px 12px; border-radius: 8px; font-size: 0.72rem; font-weight: 700;
+    cursor: pointer; transition: all 0.15s; border: 1px solid; letter-spacing: 0.03em;
+  }
+  .toc-btn-export { background: #0d1e18; color: #50b880; border-color: #1e4830; }
+  .toc-btn-export:hover { background: #122818; color: #60d090; border-color: #2a6840; }
+  .toc-btn-collapse { background: #1a1428; color: #9080c0; border-color: #2a2048; }
+  .toc-btn-collapse:hover { background: #201838; color: #a090d0; border-color: #3a2858; }
+
+  /* ── 必填欄位標示 ── */
+  .field-required::after {
+    content: ' *'; color: #e07050; font-weight: 700; font-size: 0.75rem;
+  }
+
+  /* ── Focus 可見狀態 ── */
+  :focus-visible {
+    outline: 2px solid #70d0f8;
+    outline-offset: 2px;
+  }
+  button:focus-visible, .channel-chip:focus-visible, .arrow-toggle button:focus-visible {
+    outline: 2px solid #70d0f8;
+    outline-offset: 2px;
+  }
+
+  /* ── 範例載入按鈕 ── */
+  .btn-example {
+    width: 100%; padding: 10px; border-radius: 12px;
+    background: linear-gradient(135deg, #0d1e18, #142820);
+    color: #50b880; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; transition: all 0.18s; letter-spacing: 0.02em;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    border: 1px solid #1e4030; margin-bottom: 6px;
+  }
+  .btn-example:hover {
+    background: linear-gradient(135deg, #122818, #1a3428);
+    box-shadow: 0 2px 8px rgba(40,160,100,0.15);
+    transform: translateY(-1px); color: #60d090;
+  }
+  .btn-example:active { transform: translateY(0); }
+
+  /* ── 確認對話框 ── */
+  .confirm-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    animation: fadeIn 0.2s;
+  }
+  .confirm-dialog {
+    background: #1a2230; border: 1px solid #2a4060; border-radius: 16px;
+    padding: 28px 24px; max-width: 360px; width: 90%; text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .confirm-dialog h3 { font-size: 1rem; color: #d0e0f0; margin-bottom: 10px; font-weight: 800; }
+  .confirm-dialog p { font-size: 0.85rem; color: #7a9aaa; margin-bottom: 20px; line-height: 1.55; }
+  .confirm-btns { display: flex; gap: 10px; justify-content: center; }
+  .confirm-btns button {
+    padding: 10px 22px; border-radius: 10px; font-size: 0.85rem;
+    font-weight: 700; cursor: pointer; transition: all 0.15s; border: 1px solid;
+  }
+  .confirm-cancel { background: #182030; color: #8098a8; border-color: #2a3848; }
+  .confirm-cancel:hover { background: #1e2838; color: #a0b8c8; }
+  .confirm-ok { background: #3a1818; color: #f08888; border-color: #6a2828; }
+  .confirm-ok:hover { background: #4a2020; color: #ffa0a0; }
+
+  /* ── 進度指示器 ── */
+  .progress-bar { display: flex; gap: 3px; padding: 10px 14px; align-items: center; }
+  .progress-step {
+    flex: 1; height: 4px; border-radius: 2px;
+    background: #1a2838; transition: background 0.3s;
+  }
+  .progress-step.active { background: linear-gradient(90deg, #3a7898, #50a8d0); }
+  .progress-label {
+    font-size: 0.68rem; color: #4a6878; font-weight: 600;
+    margin-left: 8px; white-space: nowrap; letter-spacing: 0.04em;
+  }
+
+  /* ── 減少動畫偏好 ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
 </style>
 </head>
 <body>
@@ -797,6 +905,16 @@
   <!-- ── SIDEBAR ── -->
   <aside class="sidebar">
 
+    <!-- 進度指示器 -->
+    <div class="progress-bar" id="progress-bar">
+      <div class="progress-step" data-step="basic" title="基本參數"></div>
+      <div class="progress-step" data-step="centers" title="能量中心"></div>
+      <div class="progress-step" data-step="variable" title="四箭頭"></div>
+      <div class="progress-step" data-step="channels" title="通道"></div>
+      <div class="progress-step" data-step="cross" title="交叉/月交點"></div>
+      <span class="progress-label" id="progress-label">0/5 已填寫</span>
+    </div>
+
     <!-- 姓名 -->
     <div class="panel" style="padding:12px 16px;">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -816,7 +934,7 @@
     <div class="panel">
       <div class="panel-title">基本參數</div>
       <div class="field">
-        <label>類型 Type</label>
+        <label class="field-required">類型 Type</label>
         <select id="sel-type" onchange="update()">
           <option value="">— 請選擇 —</option>
           <option value="生產者">生產者 Generator</option>
@@ -827,7 +945,7 @@
         </select>
       </div>
       <div class="field">
-        <label>內在權威 Inner Authority</label>
+        <label class="field-required">內在權威 Inner Authority</label>
         <select id="sel-authority" onchange="update()">
           <option value="">— 請選擇 —</option>
           <option value="情緒">情緒權威 Emotional</option>
@@ -858,7 +976,7 @@
         </select>
       </div>
       <div class="field">
-        <label>定義 Definition</label>
+        <label class="field-required">定義 Definition</label>
         <select id="sel-definition" onchange="update()">
           <option value="">— 請選擇 —</option>
           <option value="單一">單一定義 Single</option>
@@ -1315,7 +1433,8 @@
       ✦ 查看完整版進階分析結果 →
     </button>
 
-    <button class="btn-reset" onclick="resetAll()">↺ 重置所有選項</button>
+    <button class="btn-example" onclick="loadExample()">✦ 載入範例資料（快速預覽效果）</button>
+    <button class="btn-reset" onclick="confirmReset()">↺ 重置所有選項</button>
   </aside>
 
   <!-- ── MAIN OUTPUT ── -->
@@ -5019,6 +5138,25 @@ function toggleCenter(key) {
   update();
 }
 
+// ══════════════════════════════════════════
+//  確認重置對話框
+// ══════════════════════════════════════════
+function confirmReset() {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-dialog">
+      <h3>確定要重置嗎？</h3>
+      <p>所有已填入的參數和選擇都會被清除，此操作無法復原。</p>
+      <div class="confirm-btns">
+        <button class="confirm-cancel" onclick="this.closest('.confirm-overlay').remove()">取消</button>
+        <button class="confirm-ok" onclick="this.closest('.confirm-overlay').remove(); resetAll();">確定重置</button>
+      </div>
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
 function resetAll() {
   document.getElementById('sel-type').value = '';
   document.getElementById('sel-authority').value = '';
@@ -5649,6 +5787,7 @@ function getCrossType(role) {
 //  RENDER
 // ══════════════════════════════════════════
 function update() {
+  updateProgress();
   const userName = (document.getElementById('user-name')?.value || '').trim();
   const type = document.getElementById('sel-type').value;
   const auth = document.getElementById('sel-authority').value;
@@ -5733,13 +5872,35 @@ function update() {
     </button>
   </div>`;
 
+  // ── 目錄導航列 ──
+  const tocItems = [];
+  if (type && TYPES[type]) tocItems.push({id:'card-type', label:'類型', icon:'◈'});
+  if (auth && AUTHORITIES[auth]) tocItems.push({id:'card-auth', label:'權威', icon:'⬡'});
+  if (role && LIFE_ROLES[role]) tocItems.push({id:'card-role', label:'角色', icon:'⬡'});
+  if (def && DEFINITIONS[def]) tocItems.push({id:'card-def', label:'定義', icon:'◇'});
+  if (varKey.length === 4 && !varKey.includes('null') && VARIABLES[varKey]) tocItems.push({id:'card-var', label:'變數', icon:'△'});
+  if (checkedChannels.size > 0) tocItems.push({id:'card-channels', label:'通道', icon:'⬡'});
+  if (hasCross) tocItems.push({id:'card-cross', label:'交叉', icon:'✦'});
+  if (hasNodes) tocItems.push({id:'card-nodes', label:'月交點', icon:'🌙'});
+
+  if (tocItems.length >= 2) {
+    html += `<div class="toc-bar">
+      ${tocItems.map(t => `<span class="toc-item" onclick="document.getElementById('${t.id}')?.scrollIntoView({behavior:'smooth',block:'start'})">${t.icon} ${t.label}</span>`).join('')}
+      <div class="toc-actions">
+        <button class="toc-action-btn toc-btn-collapse" id="toc-collapse-btn" onclick="toggleAllCards(this.textContent.includes('展開'))">收合全部</button>
+        <button class="toc-action-btn toc-btn-export" onclick="exportResults()">⬇ 匯出報告</button>
+      </div>
+    </div>`;
+  }
+
   // TYPE
   if (type && TYPES[type]) {
     const d = TYPES[type];
-    html += `<div class="output-card">
-      <div class="card-header header-type">
+    html += `<div class="output-card" id="card-type">
+      <div class="card-header header-type" style="position:relative;">
         <div class="card-icon">◈</div>
         <div><div class="card-title">${d.name}</div><div class="card-subtitle">人類圖類型 Type</div></div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
         <div class="info-row">
@@ -5766,10 +5927,11 @@ function update() {
   // AUTHORITY
   if (auth && AUTHORITIES[auth]) {
     const d = AUTHORITIES[auth];
-    html += `<div class="output-card">
-      <div class="card-header header-authority">
+    html += `<div class="output-card" id="card-auth">
+      <div class="card-header header-authority" style="position:relative;">
         <div class="card-icon">🧭</div>
         <div><div class="card-title">${d.name}</div><div class="card-subtitle">內在權威 Inner Authority</div></div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
         ${d.applicableTo ? `<div style="background:#202430;border:1px solid #363a4a;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.81rem;color:#8a96a8;"><strong>適用對象：</strong>${d.applicableTo}</div>` : ''}
@@ -5785,10 +5947,11 @@ function update() {
   // LIFE ROLE
   if (role && LIFE_ROLES[role]) {
     const d = LIFE_ROLES[role];
-    html += `<div class="output-card">
-      <div class="card-header header-role">
+    html += `<div class="output-card" id="card-role">
+      <div class="card-header header-role" style="position:relative;">
         <div class="card-icon">◉</div>
         <div><div class="card-title">${d.name}</div><div class="card-subtitle">人生角色 Profile</div></div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
@@ -5829,10 +5992,11 @@ function update() {
   // DEFINITION
   if (def && DEFINITIONS[def]) {
     const d = DEFINITIONS[def];
-    html += `<div class="output-card">
-      <div class="card-header header-definition">
+    html += `<div class="output-card" id="card-def">
+      <div class="card-header header-definition" style="position:relative;">
         <div class="card-icon">⬡</div>
         <div><div class="card-title">${d.name}</div><div class="card-subtitle">定義 Definition</div></div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
@@ -5882,10 +6046,26 @@ function update() {
       </div>
       <div class="card-body">`;
 
+    // 總覽說明段落
+    const islandNames = bridge.islands.map((isl, i) => isl.join('、')).join('</strong>）和（<strong style="color:#c0d0e0;">');
+    const defLabel = def === '二分' ? '二分（Split）' : def === '三分' ? '三分（Triple Split）' : def === '四分' ? '四分（Quad Split）' : def;
+    panel += `<div style="background:linear-gradient(135deg,#0d1420,#101828);border:1px solid #1e2840;border-radius:10px;padding:14px 16px;margin-bottom:16px;line-height:1.75;">
+      <div style="font-size:0.85rem;color:#b0c0d0;margin-bottom:8px;">
+        您的定義類型是<strong style="color:#e0c070;">${defLabel}定義</strong>——這代表您圖中有定義（有顏色）的能量中心分成了 <strong style="color:#e0a050;">${bridge.islands.length} 座獨立的島嶼</strong>，分別是（<strong style="color:#c0d0e0;">${islandNames}</strong>），它們之間目前沒有直接相連的通道。
+      </div>
+      <div style="font-size:0.82rem;color:#8898a8;margin-bottom:6px;">
+        <strong style="color:#90a0b0;">這在生活中的感受：</strong>您可能會不自覺地被某些人吸引——不一定是浪漫，而是因為對方剛好帶有能把您兩座島「接通」的能量。待在他們身邊時，您會覺得特別完整、思路特別清晰。這就是人類圖所說的「橋樑人」效應。
+      </div>
+      <div style="font-size:0.78rem;color:#607888;font-style:italic;">
+        這不是缺陷，而是您的設計——透過與他人和環境的互動來體驗整合，是分裂定義的天賦。
+      </div>
+    </div>`;
+
     // 島嶼視覺化
     const islandColors = ['#4a90c0','#c07040','#40a870','#a060c0'];
     panel += `<div style="margin-bottom:14px;">
-      <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase;">✦ 能量島嶼分布 Energy Islands</div>
+      <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:4px;text-transform:uppercase;">✦ 能量島嶼分布 Energy Islands</div>
+      <div style="font-size:0.76rem;color:#6a8098;margin-bottom:8px;line-height:1.5;">以下是您能量中心的分組方式——同一座島嶼內的中心彼此相連，但不同島嶼之間缺少直接的連結通道。</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">`;
     bridge.islands.forEach((isl, idx) => {
       const clr = islandColors[idx % islandColors.length];
@@ -5903,7 +6083,8 @@ function update() {
       panel += `<div style="margin-bottom:14px;">
         <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase;">⬡ 可橋接的通道（缺口分析）</div>
         <div style="background:#0d1420;border:1px solid #1e2840;border-radius:10px;padding:10px 14px;">
-          <div style="font-size:0.78rem;color:#8090a8;margin-bottom:8px;line-height:1.5;">您的${def}定義有 <strong style="color:#e0a050;">${bridge.islands.length} 個能量島嶼</strong>，以下通道如果被啟動（由行運或橋樑人帶來），可以連結不同島嶼：</div>
+          <div style="font-size:0.78rem;color:#8090a8;margin-bottom:4px;line-height:1.5;">您的${def}定義有 <strong style="color:#e0a050;">${bridge.islands.length} 個能量島嶼</strong>，以下通道如果被啟動（由行運或橋樑人帶來），可以連結不同島嶼：</div>
+          <div style="font-size:0.76rem;color:#6a8098;margin-bottom:8px;line-height:1.5;">當任何一條通道被接通時，您兩座島之間的能量就能自由流動——您會感到思路更清晰、內在更流暢。金色標記（⭐🌙）代表與您的人生使命或業力課題相關的特殊橋接。</div>
           <div style="display:flex;flex-direction:column;gap:4px;">`;
 
       // 限制顯示數量避免過長
@@ -5939,8 +6120,11 @@ function update() {
     if (allBridgeHits.length > 0) {
       panel += `<div style="background:linear-gradient(135deg,#1a1408,#201810);border:2px solid #e0a05050;border-radius:12px;padding:14px 16px;margin-bottom:12px;">
         <div style="font-size:0.78rem;font-weight:800;color:#e0a050;letter-spacing:0.06em;margin-bottom:8px;">⭐ 命運級橋接發現 Destiny Bridge</div>
-        <div style="font-size:0.84rem;color:#c0b090;line-height:1.65;margin-bottom:10px;">
-          您的輪迴交叉${nodeBridges.length > 0 ? '或月交點' : ''}中的閘門恰好落在定義分裂的缺口上！這意味著您的<strong style="color:#e0c070;">人生使命（交叉）本身就包含了「自我橋接」的潛力</strong>。當您活出交叉的主題，分裂的能量會自然趨向整合。
+        <div style="font-size:0.84rem;color:#c0b090;line-height:1.65;margin-bottom:6px;">
+          您的輪迴交叉${nodeBridges.length > 0 ? '或月交點' : ''}中的閘門恰好落在定義分裂的缺口上！這意味著您的<strong style="color:#e0c070;">人生使命（交叉）本身就包含了「自我橋接」的潛力</strong>。
+        </div>
+        <div style="font-size:0.82rem;color:#a09878;line-height:1.65;margin-bottom:10px;">
+          <strong style="color:#c0b090;">白話來說：</strong>您不需要刻意向外尋找某個人來讓自己變得完整。當您走在自己的人生軌道上、活出使命的主題時，分裂的能量會自然趨向整合。整合不是靠「修補」，而是靠「活出自己」。
         </div>`;
 
       if (crossBridges.length > 0) {
@@ -5954,7 +6138,7 @@ function update() {
               return '<div style="background:#2a1e0a;border:1px solid #e0a05060;border-radius:8px;padding:5px 10px;"><span style="font-weight:800;color:#e0c070;font-size:0.88rem;">G' + g + '</span><span style="color:#a09070;font-size:0.75rem;margin-left:6px;">' + gc + '</span>' + (label ? '<span style="color:#908060;font-size:0.8rem;margin-left:4px;">· ' + label + '</span>' : '') + '</div>';
             }).join('')}
           </div>
-          <div style="font-size:0.78rem;color:#a09070;line-height:1.55;margin-top:6px;">這些閘門同時是您人生使命的核心組成和能量分裂的橋樑——活出交叉的主題就是在修復自己的完整性。</div>
+          <div style="font-size:0.78rem;color:#a09070;line-height:1.55;margin-top:6px;">這些閘門既是您人生使命（輪迴交叉）的核心組成，也是連結您兩座能量島嶼的橋樑。這代表<strong style="color:#c0a870;">活出使命的過程本身，就是在讓自己變得完整</strong>——您的人生方向和內在整合是同一件事。</div>
         </div>`;
       }
 
@@ -5969,7 +6153,7 @@ function update() {
               return '<div style="background:#0a1420;border:1px solid #8090c060;border-radius:8px;padding:5px 10px;"><span style="font-weight:800;color:#a0b8e0;font-size:0.88rem;">G' + g + '</span><span style="color:#708090;font-size:0.75rem;margin-left:6px;">' + gc + '</span>' + (label ? '<span style="color:#607080;font-size:0.8rem;margin-left:4px;">· ' + label + '</span>' : '') + '</div>';
             }).join('')}
           </div>
-          <div style="font-size:0.78rem;color:#7888a0;line-height:1.55;margin-top:6px;">月交點的橋接閘門揭示了您過去世（南交點）和此生發展方向（北交點）中與能量整合相關的人生課題。</div>
+          <div style="font-size:0.78rem;color:#7888a0;line-height:1.55;margin-top:6px;">月交點和您的業力課題有關——南交點代表過去世帶來的慣性，北交點代表此生的發展方向。這些閘門同時也是橋接缺口的鑰匙，代表<strong style="color:#8898b0;">您的人生課題本身就包含了讓自己變完整的功課</strong>。</div>
         </div>`;
       }
 
@@ -5978,7 +6162,7 @@ function update() {
       // 沒有命中但有足夠數據
       panel += `<div style="background:#0d1420;border:1px solid #1e2840;border-radius:10px;padding:10px 14px;margin-bottom:12px;">
         <div style="font-size:0.78rem;color:#6080a0;line-height:1.55;">
-          您的交叉和月交點閘門未直接落在分裂缺口上。這意味著<strong>橋接主要透過行運（Transit）和身邊的人來實現</strong>——留意那些讓您感到「被補完」的人和時刻。
+          您的輪迴交叉和月交點閘門未直接落在分裂缺口上——這不代表您無法整合，只是整合的方式不同。您的<strong>橋接主要透過行運（天體運行帶來的能量變化）和身邊的人來實現</strong>。留意生活中那些讓您感到「被補完」的人和時刻，那就是橋接正在發生。
         </div>
       </div>`;
     }
@@ -5987,7 +6171,7 @@ function update() {
     if (bridge.gapGates.length > 0) {
       panel += `<div style="margin-bottom:4px;">
         <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:6px;text-transform:uppercase;">✦ 所有缺口閘門 Gap Gates</div>
-        <div style="font-size:0.75rem;color:#607080;margin-bottom:6px;line-height:1.5;">以下閘門如果被行運或他人啟動，能暫時橋接您的能量分裂：</div>
+        <div style="font-size:0.75rem;color:#607080;margin-bottom:6px;line-height:1.5;">以下是所有可能連通您兩座島嶼的「鑰匙」閘門。當行運走到這些閘門、或身邊有人帶著這些閘門的能量時，您的分裂會暫時被橋接——那些「突然覺得很順、很完整」的時刻，往往就是這些閘門被啟動的時候。</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;">
           ${bridge.gapGates.map(g => {
             const isCross = crossGates.includes(g);
@@ -6099,10 +6283,11 @@ function update() {
         { label: '③心智/覺知', L: '策略型心智——有目的性地主動提取資訊，記憶力強，能策略性地運用知識', R: '接受型心智——如海綿般被動吸收所有資訊，需透過他人觸發才能提取內在智慧' },
         { label: '④視角/觀點', L: '聚焦視角——鎖定特定目標深入觀察，專注細節，精準捕捉單一方向的資訊', R: '廣角視角——接收整體氛圍與全貌，不鎖定細節，以寬廣的方式感知周遭一切' },
       ];
-      html += `<div class="output-card">
-        <div class="card-header header-variable">
+      html += `<div class="output-card" id="card-var">
+        <div class="card-header header-variable" style="position:relative;">
           <div class="card-icon">🧬</div>
           <div><div class="card-title">變數類型 Variable</div><div class="card-subtitle">四箭頭組合 ${varKey}　｜　${vd.pxdx}</div></div>
+          <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
         </div>
         <div class="card-body">
           <div class="animal-display">
@@ -6230,10 +6415,11 @@ function update() {
       phsBody += `<div style="margin-top:8px;padding:8px 12px;background:#1a1828;border:1px dashed #2a2848;border-radius:8px;font-size:0.78rem;color:#6a5888;">💡 選擇「內在權威」後，將顯示「權威 × ${PHS_COGNITION[tone] ? PHS_COGNITION[tone].name : '認知'}」的整合決策管道</div>`;
     }
 
-    html += `<div class="output-card">
-      <div class="card-header header-phs">
+    html += `<div class="output-card" id="card-phs">
+      <div class="card-header header-phs" style="position:relative;">
         <div class="card-icon">🌿</div>
         <div><div class="card-title">初級健康系統 PHS</div><div class="card-subtitle">${subtitleParts.join(' · ')}</div></div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
         <div style="background:#182820;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:0.82rem;color:#5aaa80;border:1px solid #2a4a38;">
@@ -6436,10 +6622,11 @@ function update() {
     const maxCount = Math.max(...Object.values(counts));
     const dominant = Object.entries(counts).filter(([,v])=>v===maxCount && v>0).map(([k])=>k);
 
-    html += `<div class="output-card">
-      <div class="card-header header-channels">
+    html += `<div class="output-card" id="card-channels">
+      <div class="card-header header-channels" style="position:relative;">
         <div class="card-icon">⚡</div>
         <div><div class="card-title">通道分析 Channels</div><div class="card-subtitle">已選 ${checkedChannels.size} 條通道</div></div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
         <div class="section-label">能力類型分布</div>
@@ -6993,15 +7180,16 @@ function update() {
         </div>
       </div>` : '';
 
-    html += `<div class="output-card">
-      <div class="card-header header-cross">
+    html += `<div class="output-card" id="card-cross">
+      <div class="card-header header-cross" style="position:relative;">
         <div class="card-icon">✦</div>
         <div>
           <div class="card-title">輪迴交叉 Incarnation Cross</div>
           <div class="card-sub">靈魂主題 · 生命藍圖的四大閘門</div>
         </div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
-      <div class="card-body">
+      <div class="card-body card-body-collapsible">
         ${crossNameBanner}
         ${juxNoticeHtml}
         ${crossBadge}
@@ -7098,15 +7286,16 @@ function update() {
       </div>`;
     })() : '';
 
-    html += `<div class="output-card">
-      <div class="card-header header-nodes">
+    html += `<div class="output-card" id="card-nodes">
+      <div class="card-header header-nodes" style="position:relative;">
         <div class="card-icon">🌙</div>
         <div>
           <div class="card-title">人生舞台 Lunar Nodes</div>
           <div class="card-sub">月交點 · 命運的舞台佈景與人生道路</div>
         </div>
+        <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
-      <div class="card-body">
+      <div class="card-body card-body-collapsible">
         ${stageIndicator}
 
         <!-- 南交點 -->
@@ -7232,6 +7421,148 @@ function update() {
 
   out.innerHTML = html;
   // 行動裝置：不自動跳頁，由使用者按「查看結果」按鈕手動切換
+}
+
+// ══════════════════════════════════════════
+//  進度指示器更新
+// ══════════════════════════════════════════
+function updateProgress() {
+  const steps = {
+    basic: !!(document.getElementById('sel-type').value || document.getElementById('sel-authority').value || document.getElementById('sel-definition').value),
+    centers: definedCenters.size > 0,
+    variable: arrows.some(a => a !== null),
+    channels: checkedChannels.size > 0,
+    cross: !!(parseInt(document.getElementById('cross-c-sun')?.value) || parseInt(document.getElementById('node-s-c')?.value))
+  };
+  let count = 0;
+  document.querySelectorAll('.progress-step').forEach(el => {
+    const key = el.dataset.step;
+    if (steps[key]) { el.classList.add('active'); count++; }
+    else el.classList.remove('active');
+  });
+  const label = document.getElementById('progress-label');
+  if (label) label.textContent = `${count}/5 已填寫`;
+}
+
+// ══════════════════════════════════════════
+//  範例資料載入
+// ══════════════════════════════════════════
+function loadExample() {
+  // 範例：生產者 / 薦骨權威 / 2/4 人生角色 / 二分定義
+  document.getElementById('sel-type').value = '生產者';
+  document.getElementById('sel-authority').value = '薦骨權威';
+  document.getElementById('sel-role').value = '2/4';
+  document.getElementById('sel-definition').value = '二分';
+  // 設定四箭頭
+  arrows = ['L','R','R','L'];
+  for (let i=1;i<=4;i++){
+    ['L','R'].forEach(v => {
+      document.getElementById(`a${i}-${v}`).classList.toggle('active', v === arrows[i-1]);
+    });
+  }
+  // 啟動一些能量中心
+  ['喉嚨','意志力','脾臟','根部','情緒'].forEach(key => {
+    if (!definedCenters.has(key)) {
+      definedCenters.add(key);
+      const cd = CENTERS_DATA[key];
+      const shape = document.getElementById(`c-${key}`);
+      const lbl = document.getElementById(`t-${key}`);
+      if (shape && cd) { shape.setAttribute('fill', cd.color); shape.setAttribute('stroke', cd.color); }
+      if (lbl && cd && cd.textLight) lbl.classList.add('w');
+    }
+  });
+  // 啟動通道
+  ['20-57','35-36','26-44'].forEach(ch => {
+    if (!checkedChannels.has(ch)) {
+      checkedChannels.add(ch);
+      const chip = document.getElementById(`chip-${ch}`);
+      if (chip) { chip.classList.add('checked'); chip.setAttribute('aria-checked','true'); }
+    }
+  });
+  // 輪迴交叉
+  document.getElementById('cross-c-sun').value = 57;
+  document.getElementById('cross-c-earth').value = 51;
+  document.getElementById('cross-c-dsun').value = 48;
+  document.getElementById('cross-c-dearth').value = 21;
+  // 月交點
+  document.getElementById('node-s-c').value = 12;
+  document.getElementById('node-s-d').value = 11;
+  document.getElementById('node-n-c').value = 26;
+  document.getElementById('node-n-d').value = 46;
+
+  update();
+  // 行動裝置自動跳到結果頁
+  if (window.innerWidth <= 900) switchMobileTab('output');
+}
+
+// ══════════════════════════════════════════
+//  卡片摺疊功能
+// ══════════════════════════════════════════
+function toggleCardCollapse(btn) {
+  const card = btn.closest('.output-card');
+  // Find all card-body divs that are direct children
+  const bodies = card.querySelectorAll('.card-body, .card-body-collapsible');
+  if (!bodies.length) return;
+  const firstBody = bodies[0];
+  const isNowCollapsed = !firstBody.classList.contains('collapsed');
+  bodies.forEach(body => {
+    body.classList.add('card-body-collapsible');
+    if (isNowCollapsed) body.classList.add('collapsed');
+    else body.classList.remove('collapsed');
+  });
+  btn.textContent = isNowCollapsed ? '▸' : '▾';
+  btn.title = isNowCollapsed ? '展開' : '收合';
+}
+
+function toggleAllCards(expand) {
+  document.querySelectorAll('.output-card').forEach(card => {
+    const bodies = card.querySelectorAll('.card-body, .card-body-collapsible');
+    const btn = card.querySelector('.card-collapse-btn');
+    bodies.forEach(body => {
+      body.classList.add('card-body-collapsible');
+      if (expand) body.classList.remove('collapsed');
+      else body.classList.add('collapsed');
+    });
+    if (btn) {
+      btn.textContent = expand ? '▾' : '▸';
+      btn.title = expand ? '收合' : '展開';
+    }
+  });
+  const colBtn = document.getElementById('toc-collapse-btn');
+  if (colBtn) {
+    colBtn.textContent = expand ? '收合全部' : '展開全部';
+  }
+}
+
+// ══════════════════════════════════════════
+//  匯出為文字檔
+// ══════════════════════════════════════════
+function exportResults() {
+  const out = document.getElementById('main-output');
+  if (!out) return;
+  const userName = (document.getElementById('user-name')?.value || '').trim() || '未命名';
+  let text = `HD Decode 人類圖解讀報告\n`;
+  text += `解析對象：${userName}\n`;
+  text += `產生時間：${new Date().toLocaleString('zh-TW')}\n`;
+  text += `${'═'.repeat(40)}\n\n`;
+  // 提取每張卡片的文字內容
+  out.querySelectorAll('.output-card').forEach(card => {
+    const title = card.querySelector('.card-title');
+    if (title) text += `▍${title.textContent}\n${'─'.repeat(30)}\n`;
+    const body = card.querySelector('[class*="card-body"]');
+    if (body) {
+      const clone = body.cloneNode(true);
+      // 移除 style tags
+      clone.querySelectorAll('style').forEach(s => s.remove());
+      text += clone.textContent.replace(/\n{3,}/g, '\n\n').trim() + '\n\n';
+    }
+  });
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `HD-Decode-${userName}-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 init();
