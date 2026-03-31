@@ -7842,61 +7842,38 @@ function exportPDF() {
   const userName = (document.getElementById('user-name')?.value || '').trim() || '未命名';
   const fileName = `HD-Decode-${userName}-${new Date().toISOString().slice(0,10)}.pdf`;
 
-  // 產生 PDF 的按鈕回饋
+  // 按鈕回饋
   const exportBtn = document.querySelector('.toc-btn-export');
-  if (exportBtn) {
-    exportBtn.textContent = '⏳ 產生中…';
-    exportBtn.disabled = true;
-  }
+  if (exportBtn) { exportBtn.textContent = '⏳ 產生中…'; exportBtn.disabled = true; }
 
-  // 建立遮罩（讓使用者知道正在處理）
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9998;display:flex;align-items:center;justify-content:center;';
-  overlay.innerHTML = '<div style="background:#1a2230;border:1px solid #2a4060;border-radius:12px;padding:20px 32px;color:#90c0e0;font-size:0.9rem;font-weight:600;">⏳ 正在產生 PDF，請稍候...</div>';
-  document.body.appendChild(overlay);
+  // 方法：直接擷取 main-output 區域
+  // 先暫時隱藏不需要的互動元素
+  const hideEls = out.querySelectorAll('.toc-bar, .card-collapse-btn, .export-dropdown, .freq-toggle');
+  hideEls.forEach(el => el.style.display = 'none');
 
-  // 建立容器 — 放在畫面上（但被遮罩擋住），html2canvas 才能正確擷取
-  const container = document.createElement('div');
-  container.id = 'pdf-render-container';
-  container.style.cssText = `
-    position: absolute; left: 0; top: 0; width: 800px; z-index: 9997;
-    background: #0c1420; color: #c8d8e8;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
-    padding: 40px 32px; overflow: visible;
-  `;
-
-  // 標題
-  container.innerHTML = `
-    <div style="text-align:center; margin-bottom: 32px;">
-      <div style="font-size: 26px; font-weight: 800; color: #70d0f8; margin-bottom: 8px;">
-        HD Decode ✦ 人類圖解讀報告
-      </div>
-      <div style="font-size: 14px; color: #6a8898; margin-bottom: 4px;">解析對象：${userName}</div>
-      <div style="font-size: 12px; color: #4a6878;">產生時間：${new Date().toLocaleString('zh-TW')}</div>
-      <div style="margin-top: 16px; height: 1px; background: linear-gradient(90deg, transparent, #2a4858, transparent);"></div>
-    </div>
-  `;
-
-  // 複製所有卡片內容
-  const cards = out.querySelectorAll('.output-card');
-  cards.forEach(card => {
-    const clone = card.cloneNode(true);
-    clone.querySelectorAll('.card-collapse-btn').forEach(b => b.remove());
-    clone.querySelectorAll('.card-body-collapsible').forEach(el => {
-      el.classList.remove('collapsed');
-      el.style.maxHeight = 'none';
-      el.style.opacity = '1';
-      el.style.padding = '';
-    });
-    clone.querySelectorAll('button, .toc-bar, .toc-actions, .export-dropdown').forEach(el => el.remove());
-    // 確保卡片之間有間距
-    clone.style.marginBottom = '16px';
-    container.appendChild(clone);
+  // 展開所有收合的卡片
+  const collapsedEls = out.querySelectorAll('.card-body-collapsible.collapsed');
+  collapsedEls.forEach(el => {
+    el.classList.remove('collapsed');
+    el.dataset.wasCollapsed = 'true';
   });
 
-  document.body.appendChild(container);
+  // 暫時調整 main-output 的樣式讓擷取更好
+  const origStyle = out.style.cssText;
+  out.style.cssText += ';width:800px;max-width:800px;overflow:visible;';
 
-  // 等一幀讓瀏覽器完成排版，再擷取
+  // 在頂部插入標題
+  const header = document.createElement('div');
+  header.id = 'pdf-header-temp';
+  header.style.cssText = 'text-align:center;margin-bottom:24px;padding:20px;';
+  header.innerHTML = `
+    <div style="font-size:24px;font-weight:800;color:#70d0f8;margin-bottom:6px;">HD Decode ✦ 人類圖解讀報告</div>
+    <div style="font-size:13px;color:#6a8898;">解析對象：${userName}　｜　${new Date().toLocaleString('zh-TW')}</div>
+    <div style="margin-top:12px;height:1px;background:linear-gradient(90deg,transparent,#2a4858,transparent);"></div>
+  `;
+  out.insertBefore(header, out.firstChild);
+
+  // 給瀏覽器時間重排
   requestAnimationFrame(() => {
     setTimeout(() => {
       const opt = {
@@ -7904,39 +7881,45 @@ function exportPDF() {
         filename:     fileName,
         image:        { type: 'jpeg', quality: 0.92 },
         html2canvas:  {
-          scale: 2,
+          scale: 1.5,
           useCORS: true,
           backgroundColor: '#0c1420',
           logging: false,
-          width: 800,
-          scrollX: 0,
-          scrollY: 0,
-          x: 0,
-          y: 0
+          removeContainer: true
         },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'], avoid: '.output-card' }
+        pagebreak:    { mode: ['css', 'legacy'] }
       };
 
-      html2pdf().set(opt).from(container).save().then(() => {
-        container.remove();
-        overlay.remove();
+      html2pdf().set(opt).from(out).save().then(() => {
+        cleanup();
+      }).catch(err => {
+        console.error('PDF export error:', err);
+        cleanup();
+        alert('PDF 匯出失敗，請改用純文字匯出。');
+      });
+
+      function cleanup() {
+        // 還原所有隱藏的元素
+        hideEls.forEach(el => el.style.display = '');
+        // 還原收合的卡片
+        out.querySelectorAll('[data-was-collapsed]').forEach(el => {
+          el.classList.add('collapsed');
+          delete el.dataset.wasCollapsed;
+        });
+        // 移除臨時標題
+        const h = document.getElementById('pdf-header-temp');
+        if (h) h.remove();
+        // 還原樣式
+        out.style.cssText = origStyle;
+        // 還原按鈕
         if (exportBtn) {
           exportBtn.textContent = '✅ 完成！';
           exportBtn.disabled = false;
           setTimeout(() => { exportBtn.textContent = '⬇ 匯出報告'; }, 2500);
         }
-      }).catch(err => {
-        console.error('PDF export error:', err);
-        container.remove();
-        overlay.remove();
-        if (exportBtn) {
-          exportBtn.textContent = '⬇ 匯出報告';
-          exportBtn.disabled = false;
-        }
-        alert('PDF 匯出失敗：' + (err.message || err) + '\n\n請改用純文字匯出。');
-      });
-    }, 300); // 給瀏覽器 300ms 完成排版
+      }
+    }, 200);
   });
 }
 
