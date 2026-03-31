@@ -6408,18 +6408,17 @@ function update() {
     });
     panel += `</div></div>`;
 
+    // 建立使用者已有的閘門集合（供橋接通道與橋樑人特質共用）
+    const userGates = new Set();
+    checkedChannels.forEach(chId => {
+      chId.split('-').forEach(g => userGates.add(Number(g)));
+    });
+    crossGates.forEach(g => userGates.add(g));
+    nodeGates.forEach(g => userGates.add(g));
+    extraGates.forEach(g => userGates.add(g));
+
     // 橋接通道列表（只顯示使用者已有一半的，加入天賦描述）
     if (bridge.bridges.length > 0) {
-      // 建立使用者已有的閘門集合（從已啟動通道推導）
-      const userGates = new Set();
-      checkedChannels.forEach(chId => {
-        chId.split('-').forEach(g => userGates.add(Number(g)));
-      });
-      // 交叉、月交點閘門
-      crossGates.forEach(g => userGates.add(g));
-      nodeGates.forEach(g => userGates.add(g));
-      // 使用者手動輸入的額外閘門
-      extraGates.forEach(g => userGates.add(g));
 
       // 篩選：只留「至少有一端」的橋接通道
       const halfBridges = bridge.bridges.filter(b => userGates.has(b.gates[0]) || userGates.has(b.gates[1]));
