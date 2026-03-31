@@ -6314,72 +6314,148 @@ function update() {
       panel += `</div></div>`;
     }
 
-    // 橋接閘門 × 交叉/月交點的命運連結
+    // 命運級橋接（增強版）
     if (allBridgeHits.length > 0) {
-      panel += `<div style="background:linear-gradient(135deg,#1a1408,#201810);border:2px solid #e0a05050;border-radius:12px;padding:14px 16px;margin-bottom:12px;">
-        <div style="font-size:0.78rem;font-weight:800;color:#e0a050;letter-spacing:0.06em;margin-bottom:8px;">⭐ 命運級橋接發現 Destiny Bridge</div>
+      panel += `<div style="background:linear-gradient(135deg,#1a1408,#201810);border:2px solid #e0a05050;border-radius:12px;padding:16px 18px;margin-bottom:14px;">
+        <div style="font-size:0.78rem;font-weight:800;color:#e0a050;letter-spacing:0.06em;margin-bottom:10px;">⭐ 命運級橋接發現 Destiny Bridge</div>
         <div style="font-size:0.84rem;color:#c0b090;line-height:1.65;margin-bottom:6px;">
-          您的輪迴交叉${nodeBridges.length > 0 ? '或月交點' : ''}中的閘門恰好落在定義分裂的缺口上！這意味著您的<strong style="color:#e0c070;">人生使命（交叉）本身就包含了「自我橋接」的潛力</strong>。
+          您的輪迴交叉${nodeBridges.length > 0 ? '或月交點' : ''}中的閘門恰好落在定義分裂的缺口上！這意味著您的<strong style="color:#e0c070;">人生使命本身就包含了「自我橋接」的潛力</strong>。
         </div>
-        <div style="font-size:0.82rem;color:#a09878;line-height:1.65;margin-bottom:10px;">
+        <div style="font-size:0.82rem;color:#a09878;line-height:1.65;margin-bottom:12px;">
           <strong style="color:#c0b090;">白話來說：</strong>您不需要刻意向外尋找某個人來讓自己變得完整。當您走在自己的人生軌道上、活出使命的主題時，分裂的能量會自然趨向整合。整合不是靠「修補」，而是靠「活出自己」。
         </div>`;
 
       if (crossBridges.length > 0) {
-        panel += `<div style="margin-bottom:8px;">
-          <div style="font-size:0.7rem;font-weight:700;color:#e0a050;margin-bottom:5px;">⭐ 交叉橋接閘門</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        panel += `<div style="margin-bottom:12px;">
+          <div style="font-size:0.7rem;font-weight:700;color:#e0a050;margin-bottom:8px;">⭐ 交叉橋接閘門 — 活出使命就是在自我整合</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
             ${crossBridges.map(g => {
               const gc = GATE_CENTER_MAP[g];
               const gk = GATE_KEYWORDS[g];
-              const label = gk ? (gk.zh || gk.keynote || '') : '';
-              return '<div style="background:#2a1e0a;border:1px solid #e0a05060;border-radius:8px;padding:5px 10px;"><span style="font-weight:800;color:#e0c070;font-size:0.88rem;">G' + g + '</span><span style="color:#a09070;font-size:0.75rem;margin-left:6px;">' + gc + '</span>' + (label ? '<span style="color:#908060;font-size:0.8rem;margin-left:4px;">· ' + label + '</span>' : '') + '</div>';
+              const kw = gk ? (gk.zh || '') : '';
+              const keynote = gk ? (gk.keynote || '') : '';
+              const iching = gk ? (gk.iching || '') : '';
+              // 找出這個閘門參與的橋接通道
+              const relatedBridge = bridge.bridges.find(b => b.gates.includes(g));
+              const relatedCh = relatedBridge ? CHANNELS_DATA.find(c => c.id === relatedBridge.channel) : null;
+              return '<div style="background:#1e160a;border:1px solid #e0a05040;border-radius:10px;padding:10px 14px;">' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+                  '<span style="font-weight:800;color:#e0c070;font-size:0.9rem;">閘門 ' + g + '</span>' +
+                  '<span style="color:#a09070;font-size:0.76rem;">' + gc + '</span>' +
+                  (kw ? '<span style="background:#2a1e0a;border:1px solid #e0a05030;border-radius:5px;padding:1px 8px;color:#c0a870;font-size:0.72rem;font-weight:600;">' + kw + '</span>' : '') +
+                '</div>' +
+                (iching ? '<div style="font-size:0.72rem;color:#887860;margin-bottom:4px;">易經：' + iching + (keynote ? ' · ' + keynote : '') + '</div>' : '') +
+                '<div style="font-size:0.8rem;color:#b0a080;line-height:1.6;">這個閘門是您<strong style="color:#e0c070;">輪迴交叉（人生使命）</strong>的核心組成。它同時也是連結您兩座能量島嶼的橋樑鑰匙——' +
+                '當您活出這個閘門的能量主題' + (kw ? '（<strong style="color:#d0b870;">' + kw + '</strong>）' : '') + '時，' +
+                '您的分裂就會自然被整合。</div>' +
+                (relatedCh ? '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #2a1e0a;">' +
+                  '<div style="font-size:0.72rem;color:#806838;">可接通 → <strong style="color:#c0a050;">' + relatedCh.id + ' ' + (relatedCh.enName || '') + '</strong>' + (relatedCh.keyTheme ? '（' + relatedCh.keyTheme + '）' : '') + '</div>' +
+                '</div>' : '') +
+              '</div>';
             }).join('')}
           </div>
-          <div style="font-size:0.78rem;color:#a09070;line-height:1.55;margin-top:6px;">這些閘門既是您人生使命（輪迴交叉）的核心組成，也是連結您兩座能量島嶼的橋樑。這代表<strong style="color:#c0a870;">活出使命的過程本身，就是在讓自己變得完整</strong>——您的人生方向和內在整合是同一件事。</div>
         </div>`;
       }
 
       if (nodeBridges.length > 0) {
         panel += `<div style="margin-bottom:8px;">
-          <div style="font-size:0.7rem;font-weight:700;color:#8090c0;margin-bottom:5px;">🌙 月交點橋接閘門</div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+          <div style="font-size:0.7rem;font-weight:700;color:#8090c0;margin-bottom:8px;">🌙 月交點橋接閘門 — 人生課題就是自我完整的功課</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
             ${nodeBridges.map(g => {
               const gc = GATE_CENTER_MAP[g];
               const gk = GATE_KEYWORDS[g];
-              const label = gk ? (gk.zh || gk.keynote || '') : '';
-              return '<div style="background:#0a1420;border:1px solid #8090c060;border-radius:8px;padding:5px 10px;"><span style="font-weight:800;color:#a0b8e0;font-size:0.88rem;">G' + g + '</span><span style="color:#708090;font-size:0.75rem;margin-left:6px;">' + gc + '</span>' + (label ? '<span style="color:#607080;font-size:0.8rem;margin-left:4px;">· ' + label + '</span>' : '') + '</div>';
+              const kw = gk ? (gk.zh || '') : '';
+              const keynote = gk ? (gk.keynote || '') : '';
+              const iching = gk ? (gk.iching || '') : '';
+              const isSouth = [nodeSC, nodeSD].includes(g);
+              const isNorth = [nodeNC, nodeND].includes(g);
+              const nodeType = isSouth ? '南交點（過去的慣性）' : isNorth ? '北交點（此生的方向）' : '月交點';
+              const nodeAdvice = isSouth
+                ? '這代表您過去世帶來的慣性能量恰好能幫助橋接——您不需要學習新東西，而是善用已有的天賦。'
+                : '這代表您此生要發展的方向，同時也是讓自己變完整的路徑——成長的過程就是整合的過程。';
+              const relatedBridge = bridge.bridges.find(b => b.gates.includes(g));
+              const relatedCh = relatedBridge ? CHANNELS_DATA.find(c => c.id === relatedBridge.channel) : null;
+              return '<div style="background:#0a1220;border:1px solid #8090c040;border-radius:10px;padding:10px 14px;">' +
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+                  '<span style="font-weight:800;color:#a0b8e0;font-size:0.9rem;">閘門 ' + g + '</span>' +
+                  '<span style="color:#708090;font-size:0.76rem;">' + gc + '</span>' +
+                  (kw ? '<span style="background:#0a1828;border:1px solid #8090c030;border-radius:5px;padding:1px 8px;color:#8098b0;font-size:0.72rem;font-weight:600;">' + kw + '</span>' : '') +
+                  '<span style="color:#506878;font-size:0.68rem;margin-left:auto;">' + nodeType + '</span>' +
+                '</div>' +
+                (iching ? '<div style="font-size:0.72rem;color:#607888;margin-bottom:4px;">易經：' + iching + (keynote ? ' · ' + keynote : '') + '</div>' : '') +
+                '<div style="font-size:0.8rem;color:#8898b0;line-height:1.6;">' + nodeAdvice + '</div>' +
+                (relatedCh ? '<div style="margin-top:6px;padding-top:6px;border-top:1px solid #141c28;">' +
+                  '<div style="font-size:0.72rem;color:#506888;">可接通 → <strong style="color:#7090b0;">' + relatedCh.id + ' ' + (relatedCh.enName || '') + '</strong>' + (relatedCh.keyTheme ? '（' + relatedCh.keyTheme + '）' : '') + '</div>' +
+                '</div>' : '') +
+              '</div>';
             }).join('')}
           </div>
-          <div style="font-size:0.78rem;color:#7888a0;line-height:1.55;margin-top:6px;">月交點和您的業力課題有關——南交點代表過去世帶來的慣性，北交點代表此生的發展方向。這些閘門同時也是橋接缺口的鑰匙，代表<strong style="color:#8898b0;">您的人生課題本身就包含了讓自己變完整的功課</strong>。</div>
         </div>`;
       }
 
       panel += `</div>`;
     } else if (bridge.gapGates.length > 0 && (crossGates.length > 0 || nodeGates.length > 0)) {
-      // 沒有命中但有足夠數據
       panel += `<div style="background:#0d1420;border:1px solid #1e2840;border-radius:10px;padding:10px 14px;margin-bottom:12px;">
         <div style="font-size:0.78rem;color:#6080a0;line-height:1.55;">
-          您的輪迴交叉和月交點閘門未直接落在分裂缺口上——這不代表您無法整合，只是整合的方式不同。您的<strong>橋接主要透過行運（天體運行帶來的能量變化）和身邊的人來實現</strong>。留意生活中那些讓您感到「被補完」的人和時刻，那就是橋接正在發生。
+          您的輪迴交叉和月交點閘門未直接落在分裂缺口上——這不代表您無法整合，只是整合的方式不同。您的<strong>橋接主要透過行運和身邊的人來實現</strong>。留意生活中那些讓您感到「被補完」的人和時刻。
         </div>
       </div>`;
     }
 
-    // 缺口閘門快速索引
-    if (bridge.gapGates.length > 0) {
-      panel += `<div style="margin-bottom:4px;">
-        <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:6px;text-transform:uppercase;">✦ 所有缺口閘門 Gap Gates</div>
-        <div style="font-size:0.75rem;color:#607080;margin-bottom:6px;line-height:1.5;">以下是所有可能連通您兩座島嶼的「鑰匙」閘門。當行運走到這些閘門、或身邊有人帶著這些閘門的能量時，您的分裂會暫時被橋接——那些「突然覺得很順、很完整」的時刻，往往就是這些閘門被啟動的時候。</div>
-        <div style="display:flex;flex-wrap:wrap;gap:4px;">
-          ${bridge.gapGates.map(g => {
-            const isCross = crossGates.includes(g);
-            const isNode = nodeGates.includes(g);
-            const clr = isCross ? '#e0a050' : (isNode ? '#8090c0' : '#506878');
-            const bg = isCross ? '#2a1e0a' : (isNode ? '#0a1420' : '#101820');
-            return '<span style="font-size:0.7rem;background:' + bg + ';color:' + clr + ';padding:2px 8px;border-radius:6px;font-weight:600;border:1px solid ' + clr + '30;">G' + g + (isCross ? '⭐' : '') + (isNode ? '🌙' : '') + '</span>';
-          }).join('')}
-        </div>
-      </div>`;
+    // 橋樑人特質對照表（取代原本的 Gap Gates 列表）
+    if (bridge.bridges.length > 0) {
+      // 收集所有「需要的鑰匙」閘門（使用者缺少的那一端）
+      const needGatesMap = {};
+      bridge.bridges.forEach(b => {
+        const g1 = b.gates[0], g2 = b.gates[1];
+        const g1Has = userGates.has(g1), g2Has = userGates.has(g2);
+        // 只處理有一半的橋接
+        if (g1Has && !g2Has) {
+          if (!needGatesMap[g2]) needGatesMap[g2] = { gate: g2, channels: [] };
+          needGatesMap[g2].channels.push(b.channel);
+        } else if (!g1Has && g2Has) {
+          if (!needGatesMap[g1]) needGatesMap[g1] = { gate: g1, channels: [] };
+          needGatesMap[g1].channels.push(b.channel);
+        }
+      });
+
+      const needGatesList = Object.values(needGatesMap).sort((a,b) => a.gate - b.gate);
+
+      if (needGatesList.length > 0) {
+        panel += `<div style="margin-bottom:4px;">
+          <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase;">👥 您的橋樑人特質對照表</div>
+          <div style="background:#0d1420;border:1px solid #1e2840;border-radius:10px;padding:14px 16px;">
+            <div style="font-size:0.8rem;color:#8898a8;margin-bottom:10px;line-height:1.6;">
+              以下是能幫您「接通」的人會帶有的閘門特質。如果您身邊某個人讓您覺得特別順暢、完整，對照看看他是否帶有這些能量：
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${needGatesList.map(item => {
+                const g = item.gate;
+                const gc = GATE_CENTER_MAP[g] || '';
+                const gk = GATE_KEYWORDS[g];
+                const kw = gk ? (gk.zh || '') : '';
+                const keynote = gk ? (gk.keynote || '') : '';
+                const chNames = item.channels.map(chId => {
+                  const ch = CHANNELS_DATA.find(c => c.id === chId);
+                  return ch ? ch.keyTheme || ch.id : chId;
+                }).join('、');
+                return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#0a1018;border:1px solid #1a2838;border-radius:8px;flex-wrap:wrap;">' +
+                  '<span style="font-weight:800;color:#d08060;font-size:0.85rem;min-width:40px;">G' + g + '</span>' +
+                  '<span style="color:#887060;font-size:0.72rem;">' + gc + '</span>' +
+                  (kw ? '<span style="font-weight:700;color:#c09070;font-size:0.78rem;">' + kw + '</span>' : '') +
+                  (keynote ? '<span style="color:#706050;font-size:0.72rem;">(' + keynote + ')</span>' : '') +
+                  '<span style="color:#3a5060;font-size:0.68rem;margin-left:auto;">→ 可接通：' + chNames + '</span>' +
+                '</div>';
+              }).join('')}
+            </div>
+            <div style="margin-top:10px;padding-top:8px;border-top:1px solid #1a2838;">
+              <div style="font-size:0.74rem;color:#506878;line-height:1.55;">
+                <strong style="color:#708898;">怎麼用這張表？</strong>如果您知道身邊某個人的人類圖，看看他是否帶有上面的閘門。如果有，他就是您的「橋樑人」之一——跟他在一起時，您會自然感到能量更完整、思路更清晰。
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }
     }
 
     // 提示：數據不足
