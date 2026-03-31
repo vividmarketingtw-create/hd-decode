@@ -7881,53 +7881,48 @@ function exportPDF() {
   // 移除 box-shadow
   html = html.replace(/box-shadow\s*:\s*[^;]+/gi, 'box-shadow:none');
 
-  // 3) 開新視窗，寫入乾淨的白底 HTML
-  const printWin = window.open('', '_blank');
-  printWin.document.write(`<!DOCTYPE html>
+  // 3) 額外清理：移除 collapsed 狀態和可能隱藏內容的 inline style
+  html = html.replace(/\bcollapsed\b/g, '');
+  html = html.replace(/max-height\s*:\s*[^;]+;?/gi, 'max-height:none;');
+  html = html.replace(/opacity\s*:\s*[01](?:\.\d+)?;?/gi, 'opacity:1;');
+  html = html.replace(/overflow\s*:\s*hidden;?/gi, 'overflow:visible;');
+
+  // 4) 組裝完整 HTML
+  const fullHtml = `<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <title>HD Decode 人類圖解讀報告 - ${userName}</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; color: #1a1a1a !important; -webkit-text-fill-color: #1a1a1a !important; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-    background: #fff; color: #1a1a1a; font-size: 13px; line-height: 1.6; padding: 20px 28px;
+    background: #fff !important; color: #1a1a1a !important; font-size: 13px; line-height: 1.6; padding: 20px 28px;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-  /* PDF 標題 */
   .pdf-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 14px; margin-bottom: 20px; }
   .pdf-header h2 { font-size: 1.3rem; margin-bottom: 4px; }
-  .pdf-header .meta { font-size: 0.85rem; color: #666; }
-  /* 卡片 */
-  .output-card { border: 1px solid #ccc; border-radius: 8px; margin-bottom: 14px; overflow: hidden; page-break-inside: avoid; }
-  .card-header { background: #f0f2f5; padding: 10px 16px; border-bottom: 1px solid #ddd; }
-  .card-header::after { display: none; }
+  .pdf-header .meta { font-size: 0.85rem; color: #666 !important; -webkit-text-fill-color: #666 !important; }
+  .output-card { border: 1px solid #ccc; border-radius: 8px; margin-bottom: 14px; overflow: visible !important; page-break-inside: avoid; }
+  .card-header { background: #f0f2f5 !important; padding: 10px 16px; border-bottom: 1px solid #ddd; }
+  .card-header::after { display: none !important; }
   .card-title { font-weight: 800; font-size: 1rem; }
-  .card-subtitle { color: #666; font-size: 0.85rem; }
-  .card-icon { background: rgba(0,0,0,0.06); border-radius: 8px; padding: 4px; }
-  .card-body, .card-body-collapsible { padding: 14px 18px; max-height: none !important; opacity: 1 !important; overflow: visible !important; }
-  .card-body-collapsible.collapsed { max-height: none !important; opacity: 1 !important; padding: 14px 18px !important; }
-  .card-collapse-btn { display: none; }
-  /* 全域覆蓋 */
-  p, span, div, li, td, th, strong, em, b, a, h3, h4, h5, h6, label { color: #1a1a1a; }
-  a { color: #0055aa; }
-  strong { font-weight: 700; }
+  .card-subtitle { color: #666 !important; -webkit-text-fill-color: #666 !important; font-size: 0.85rem; }
+  .card-icon { background: rgba(0,0,0,0.06) !important; border-radius: 8px; padding: 4px; }
+  .card-body, .card-body-collapsible { padding: 14px 18px !important; max-height: none !important; opacity: 1 !important; overflow: visible !important; height: auto !important; display: block !important; }
+  .card-collapse-btn { display: none !important; }
   table { border-collapse: collapse; width: 100%; }
   table td, table th { border: 1px solid #ccc; padding: 6px 10px; }
-  table th { background: #f0f2f5; font-weight: 700; }
-  /* 標籤 */
-  .tag-strategy, .tag-nonself, .tag-percent { background: #f0f0f0; color: #333; border: 1px solid #bbb; }
-  .ability-group-title { background: #eee; color: #333; }
-  .channel-chip { background: #f5f5f5; color: #333; border: 1px solid #bbb; }
-  /* 隱藏不需要的 UI */
-  .freq-toggle, .toc-bar, .btn-view-results, .export-dropdown, .btn-example { display: none; }
-  /* 隱藏 PDF header（用我們自己的） */
-  .pdf-print-header { display: none; }
-  /* 提示框 */
-  [style*="border-left"] { border-left-color: #aaa !important; }
+  table th { background: #f0f2f5 !important; font-weight: 700; }
+  .tag-strategy, .tag-nonself, .tag-percent { background: #f0f0f0 !important; border: 1px solid #bbb; }
+  .ability-group-title { background: #eee !important; }
+  .channel-chip { background: #f5f5f5 !important; border: 1px solid #bbb; }
+  .freq-toggle, .toc-bar, .btn-view-results, .export-dropdown, .btn-example, .pdf-print-header { display: none !important; }
   @media print {
-    body { padding: 10px 16px; }
+    * { color: #1a1a1a !important; -webkit-text-fill-color: #1a1a1a !important; }
+    body { padding: 10px 16px; background: #fff !important; }
     .output-card { page-break-inside: avoid; }
+    .card-body, .card-body-collapsible { max-height: none !important; opacity: 1 !important; overflow: visible !important; display: block !important; }
   }
 </style>
 </head>
@@ -7937,16 +7932,27 @@ function exportPDF() {
   <div class="meta">解析對象：${userName}　｜　${new Date().toLocaleString('zh-TW')}</div>
 </div>
 ${html}
+<script>
+// 列印後提示使用者可以關閉此分頁
+window.onafterprint = function() {
+  document.title = '✅ PDF 已儲存 — 可關閉此分頁';
+};
+<\/script>
 </body>
-</html>`);
-  printWin.document.close();
+</html>`;
 
-  // 4) 等新視窗載入完成後自動列印
+  // 5) 用 Blob URL 開新視窗（比 about:blank 更可靠）
+  const blob = new Blob([fullHtml], { type: 'text/html; charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const printWin = window.open(url, '_blank');
+
+  // 6) 等視窗載入完成後自動列印
   printWin.onload = () => {
     setTimeout(() => {
+      printWin.focus();
       printWin.print();
-      // printWin.close(); // 使用者可自行關閉
-    }, 300);
+      URL.revokeObjectURL(url);
+    }, 600);
   };
 }
 
