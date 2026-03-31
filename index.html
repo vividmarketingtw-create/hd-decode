@@ -140,6 +140,58 @@
     box-shadow: 0 0 6px rgba(74,143,192,0.2);
   }
 
+  /* ── STEP ACCORDION ── */
+  .step-section { margin-bottom: 6px; }
+  .step-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; cursor: pointer; user-select: none;
+    background: linear-gradient(135deg, #101824, #162030);
+    border: 1px solid #1e3040; border-radius: 12px;
+    transition: all 0.2s;
+  }
+  .step-header:hover { border-color: #2a5070; background: linear-gradient(135deg, #142030, #1a2840); }
+  .step-header.open { border-color: #2a5878; border-radius: 12px 12px 0 0; background: linear-gradient(135deg, #101c2c, #182840); }
+  .step-num {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: #1a3048; border: 1.5px solid #2a5878;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; color: #60a8d0; flex-shrink: 0;
+  }
+  .step-header.open .step-num { background: #1a4060; border-color: #4a90c0; color: #80d0f0; }
+  .step-title { font-size: 0.85rem; font-weight: 700; color: #90b8d0; flex: 1; }
+  .step-header.open .step-title { color: #b0d8f0; }
+  .step-badge {
+    font-size: 0.68rem; padding: 2px 8px; border-radius: 10px;
+    background: #1a2838; color: #507090; border: 1px solid #2a3848;
+  }
+  .step-header.open .step-badge { background: #1a3048; color: #60a8c0; border-color: #2a5070; }
+  .step-arrow {
+    font-size: 0.7rem; color: #507090; transition: transform 0.25s;
+  }
+  .step-header.open .step-arrow { transform: rotate(180deg); color: #80c0e0; }
+  .step-body {
+    overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, padding 0.2s;
+    max-height: 0; opacity: 0; padding: 0 0;
+    border: 1px solid transparent; border-top: none;
+  }
+  .step-body.open {
+    max-height: 5000px; opacity: 1; padding: 4px 0 0;
+    border-color: #1e3040; border-radius: 0 0 12px 12px;
+  }
+  .step-hint {
+    font-size: 0.78rem; color: #5a7a90; padding: 0 14px 8px;
+    line-height: 1.5;
+  }
+  .step-body.open .step-hint { display: block; }
+  .step-body:not(.open) .step-hint { display: none; }
+  .step-skip-btn {
+    display: block; width: 100%; margin-top: 14px; padding: 9px 0;
+    background: linear-gradient(135deg, #1a2538, #1e2d42); border: 1px dashed #2a4a68;
+    border-radius: 10px; color: #5a90b8; font-size: 0.8rem; font-weight: 600;
+    cursor: pointer; text-align: center; transition: all 0.2s;
+  }
+  .step-skip-btn:hover { background: #1e3048; color: #7ab8e0; border-color: #3a6888; }
+
   /* ── FIELDS & SELECT ── */
   .field { margin-bottom: 10px; }
   .field label {
@@ -773,6 +825,17 @@
     .sidebar.mob-hidden { display: none !important; }
     .main.mob-hidden    { display: none !important; }
     .btn-view-results   { display: block; }
+    .mobile-fab {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      position: fixed; bottom: 24px; right: 18px; z-index: 500;
+      padding: 12px 20px; border-radius: 50px;
+      background: linear-gradient(135deg, #1a4a70, #2a6090);
+      border: 1px solid #3a80b8; color: #d0e8ff;
+      font-size: 0.85rem; font-weight: 700; letter-spacing: 0.03em;
+      box-shadow: 0 4px 20px rgba(0,60,120,0.5), 0 0 0 3px rgba(40,100,180,0.15);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .mobile-fab:active { transform: scale(0.95); opacity: 0.85; }
   }
 
   /* ── 卡片摺疊 ── */
@@ -937,6 +1000,11 @@
   <button class="mobile-tab-btn" data-tab="output" onclick="switchMobileTab('output')">📊 解析結果</button>
 </div>
 
+<!-- ── 行動裝置浮動切換按鈕 ── -->
+<button class="mobile-fab" id="mobile-fab" style="display:none;" onclick="toggleMobileFab()">
+  <span id="fab-icon">📊</span> <span id="fab-label">查看結果</span>
+</button>
+
 <div class="container">
 
   <!-- ── SIDEBAR ── -->
@@ -965,8 +1033,27 @@
           onfocus="this.style.borderColor='#4a80a8'"
           onblur="this.style.borderColor='#2a3848'">
       </div>
-      <button class="btn-example" onclick="loadExample()" style="margin-top:10px;width:100%;">✦ 載入範例資料（快速預覽效果）</button>
+      <div class="btn-example" style="margin-top:10px;width:100%;position:relative;">
+        <button onclick="document.getElementById('example-menu').classList.toggle('open')" style="width:100%;background:linear-gradient(135deg,#0a1e2e,#142838);border:1px solid #2a4a68;border-radius:10px;color:#70a8c8;padding:9px 14px;font-size:0.82rem;font-weight:600;cursor:pointer;">✦ 載入範例資料（快速預覽效果）▾</button>
+        <div id="example-menu" style="display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;background:#0c1820;border:1px solid #2a4a68;border-radius:10px;z-index:100;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+          <button onclick="loadExample('generator')" style="width:100%;text-align:left;padding:10px 14px;background:none;border:none;border-bottom:1px solid #1a2838;color:#90c0d8;font-size:0.8rem;cursor:pointer;font-weight:600;">🔋 生產者 · 薦骨權威 · 2/4</button>
+          <button onclick="loadExample('projector')" style="width:100%;text-align:left;padding:10px 14px;background:none;border:none;border-bottom:1px solid #1a2838;color:#90c0d8;font-size:0.8rem;cursor:pointer;font-weight:600;">🎯 投射者 · 直覺權威 · 5/1</button>
+          <button onclick="loadExample('manifestor')" style="width:100%;text-align:left;padding:10px 14px;background:none;border:none;color:#90c0d8;font-size:0.8rem;cursor:pointer;font-weight:600;">⚡ 顯示者 · 情緒權威 · 3/5</button>
+        </div>
+      </div>
+      <style>#example-menu.open { display:block !important; }</style>
     </div>
+
+    <!-- ══ STEP 1：基礎必填 ══ -->
+    <div class="step-section" id="step-1">
+      <div class="step-header open" onclick="toggleStep(1)">
+        <div class="step-num">1</div>
+        <div class="step-title">基礎必填</div>
+        <span class="step-badge">只需 4 項</span>
+        <span class="step-arrow">▾</span>
+      </div>
+      <div class="step-body open">
+        <div class="step-hint">填完這四項就能看到初步分析結果！</div>
 
     <!-- 基本參數 -->
     <div class="panel">
@@ -1025,6 +1112,20 @@
         </select>
       </div>
     </div>
+
+      </div><!-- end step-body 1 -->
+    </div><!-- end step-section 1 -->
+
+    <!-- ══ STEP 2：中階選填 ══ -->
+    <div class="step-section" id="step-2">
+      <div class="step-header" onclick="toggleStep(2)">
+        <div class="step-num">2</div>
+        <div class="step-title">中階補充</div>
+        <span class="step-badge">選填</span>
+        <span class="step-arrow">▾</span>
+      </div>
+      <div class="step-body">
+        <div class="step-hint">想要更精準的分析？補充能量中心、四箭頭和通道資訊。</div>
 
     <!-- 九大能量中心 -->
     <div class="panel">
@@ -1174,10 +1275,25 @@
       </div>
     </div>
 
+        <button class="step-skip-btn" onclick="toggleStep(2); openStep(3);">先略過，跳到 Step 3 →</button>
+      </div><!-- end step-body 2 -->
+    </div><!-- end step-section 2 -->
+
     <!-- 查看基礎分析按鈕（行動裝置） -->
     <button class="btn-view-results btn-view-basic" onclick="switchMobileTab('output')">
       📊 查看基礎分析結果 →
     </button>
+
+    <!-- ══ STEP 3：進階選填 ══ -->
+    <div class="step-section" id="step-3">
+      <div class="step-header" onclick="toggleStep(3)">
+        <div class="step-num">3</div>
+        <div class="step-title">進階深入</div>
+        <span class="step-badge">選填 · 資深玩家</span>
+        <span class="step-arrow">▾</span>
+      </div>
+      <div class="step-body">
+        <div class="step-hint">PHS、輪迴交叉、月交點 — 解鎖最完整的人類圖解讀。不會找也沒關係，可以先略過！</div>
 
     <!-- PHS -->
     <div class="panel">
@@ -1489,6 +1605,10 @@
       </div>
       <div id="extra-gates-list" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
     </div>
+
+        <button class="step-skip-btn" onclick="toggleStep(3); if(window.innerWidth<=900) switchMobileTab('output');">完成！查看分析結果 →</button>
+      </div><!-- end step-body 3 -->
+    </div><!-- end step-section 3 -->
 
     <!-- 查看完整進階分析按鈕（行動裝置） -->
     <button class="btn-view-results btn-view-full" onclick="switchMobileTab('output')">
@@ -5107,7 +5227,29 @@ function switchMobileTab(tab) {
   }
   // 切換頁籤時永遠回到最頂端，確保從頭開始閱讀
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  updateFab(tab);
 }
+
+let _currentMobileTab = 'settings';
+function updateFab(tab) {
+  _currentMobileTab = tab;
+  const fab = document.getElementById('mobile-fab');
+  const icon = document.getElementById('fab-icon');
+  const label = document.getElementById('fab-label');
+  if (!fab) return;
+  if (window.innerWidth > 900) { fab.style.display = 'none'; return; }
+  fab.style.display = 'flex';
+  if (tab === 'settings') {
+    icon.textContent = '📊'; label.textContent = '查看結果';
+  } else {
+    icon.textContent = '⚙'; label.textContent = '回到設定';
+  }
+}
+function toggleMobileFab() {
+  switchMobileTab(_currentMobileTab === 'settings' ? 'output' : 'settings');
+}
+// 監聽視窗大小變化
+window.addEventListener('resize', () => updateFab(_currentMobileTab));
 
 // ══════════════════════════════════════════
 //  INIT
@@ -5220,6 +5362,28 @@ function renderExtraGates() {
       <button onclick="removeExtraGate(${g})" style="background:none;border:none;color:#705050;cursor:pointer;font-size:0.82rem;padding:2px 4px;line-height:1;" title="移除">✕</button>
     </div>`;
   }).join('');
+}
+
+// ══════════════════════════════════════════
+//  側欄步驟手風琴
+// ══════════════════════════════════════════
+function toggleStep(n) {
+  const section = document.getElementById(`step-${n}`);
+  if (!section) return;
+  const header = section.querySelector('.step-header');
+  const body = section.querySelector('.step-body');
+  if (!header || !body) return;
+  header.classList.toggle('open');
+  body.classList.toggle('open');
+}
+
+function openStep(n) {
+  const section = document.getElementById(`step-${n}`);
+  if (!section) return;
+  const header = section.querySelector('.step-header');
+  const body = section.querySelector('.step-body');
+  if (header && !header.classList.contains('open')) header.classList.add('open');
+  if (body && !body.classList.contains('open')) body.classList.add('open');
 }
 
 function toggleChannel(id, type) {
@@ -5978,17 +6142,53 @@ function update() {
   // ── 高頻 / 陰影 切換按鈕 ──
   const isHighFreq = freqMode === 'high';
   html += `
-  <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+  <div class="freq-toggle" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 16px;border-radius:14px;
+    border:1px solid ${isHighFreq ? '#3a6a28' : '#5a3070'};
+    background:${isHighFreq ? 'linear-gradient(135deg,#0d1c0e,#142210)' : 'linear-gradient(135deg,#180d22,#201530)'};">
+    <div style="flex:1;">
+      <div style="font-size:0.72rem;color:#5a6878;font-weight:600;letter-spacing:0.08em;margin-bottom:3px;">解讀視角</div>
+      <div style="font-size:0.95rem;font-weight:700;color:${isHighFreq ? '#90d868' : '#c088e0'};">
+        ${isHighFreq ? '🌟 高頻模式' : '🌑 陰影模式'}
+      </div>
+      <div style="font-size:0.72rem;color:${isHighFreq ? '#608040' : '#806098'};margin-top:2px;">
+        ${isHighFreq ? '展示每個閘門、通道的最佳潛能與天賦' : '展示每個閘門、通道的挑戰面與成長方向'}
+      </div>
+    </div>
     <button onclick="toggleFreqMode()" title="${isHighFreq ? '切換至陰影模式' : '切換至高頻模式'}"
-      style="display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;border:1px solid ${isHighFreq ? '#4a7a30' : '#5a3a6a'};
-             background:${isHighFreq ? 'linear-gradient(135deg,#0f2010,#172818)' : 'linear-gradient(135deg,#1a0f22,#251535)'};
-             color:${isHighFreq ? '#80c860' : '#b080d8'};font-size:0.8rem;font-weight:700;cursor:pointer;
-             letter-spacing:0.06em;transition:all 0.2s;">
-      <span style="font-size:1rem;">${isHighFreq ? '🌟' : '🌑'}</span>
-      <span>${isHighFreq ? '高頻模式' : '陰影模式'}</span>
-      <span style="font-size:0.8rem;opacity:0.55;font-weight:400;">（點擊切換）</span>
+      style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;border:1px solid ${isHighFreq ? '#4a7a30' : '#5a3a6a'};
+             background:${isHighFreq ? '#1a3018' : '#281838'};
+             color:${isHighFreq ? '#80c860' : '#b080d8'};font-size:0.78rem;font-weight:700;cursor:pointer;
+             letter-spacing:0.04em;transition:all 0.2s;white-space:nowrap;">
+      ${isHighFreq ? '🌑 切換陰影' : '🌟 切換高頻'}
     </button>
   </div>`;
+
+  // ── 決策策略醒目區塊 ──
+  if (type && TYPES[type]) {
+    const td = TYPES[type];
+    const ad = (auth && AUTHORITIES[auth]) ? AUTHORITIES[auth] : null;
+    html += `
+    <div id="card-strategy-cta" style="margin-bottom:14px;padding:16px 18px;border-radius:16px;
+      background:linear-gradient(135deg,#0c1e2c,#142838,#0e2030);
+      border:1px solid #2a5878;box-shadow:0 2px 16px rgba(0,80,140,0.15);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <span style="font-size:1.3rem;">⚡</span>
+        <span style="font-size:0.95rem;font-weight:800;color:#90d0f0;letter-spacing:0.05em;">你的決策策略</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+        <div style="flex:1;min-width:160px;padding:10px 14px;border-radius:12px;background:#0a1820;border:1px solid #1e3848;">
+          <div style="font-size:0.68rem;color:#5a7888;font-weight:600;letter-spacing:0.08em;margin-bottom:4px;">策略 STRATEGY</div>
+          <div style="font-size:0.92rem;font-weight:700;color:#70c8f0;">${td.strategy}</div>
+        </div>
+        ${ad ? `<div style="flex:1;min-width:160px;padding:10px 14px;border-radius:12px;background:#0a1820;border:1px solid #1e3848;">
+          <div style="font-size:0.68rem;color:#5a7888;font-weight:600;letter-spacing:0.08em;margin-bottom:4px;">內在權威 AUTHORITY</div>
+          <div style="font-size:0.92rem;font-weight:700;color:#70c8f0;">${ad.name.split(' ')[0]}權威</div>
+        </div>` : ''}
+      </div>
+      ${ad && ad.mantra ? `<div style="padding:8px 14px;border-radius:10px;background:#0a1420;border-left:3px solid #3a7090;font-size:0.82rem;color:#88b8d0;line-height:1.6;font-style:italic;">${ad.mantra}</div>` : ''}
+      <div style="font-size:0.7rem;color:#3a5868;margin-top:8px;text-align:center;">↓ 往下看更詳細的類型、權威、人生角色分析</div>
+    </div>`;
+  }
 
   // ── 目錄導航列 ──
   const tocItems = [];
@@ -6011,7 +6211,7 @@ function update() {
           <div class="export-menu" id="export-menu">
             <button class="export-menu-item" onclick="exportPDF(); closeExportMenu();">
               <span class="export-icon">📄</span>
-              <span><span class="export-label">匯出為 PDF</span><br><span class="export-desc">開啟列印預覽 → 選擇「儲存為 PDF」</span></span>
+              <span><span class="export-label">匯出為 PDF</span><br><span class="export-desc">開啟報告頁面 → 按 Cmd+P 儲存為 PDF</span></span>
             </button>
             <button class="export-menu-item" onclick="exportResults(); closeExportMenu();">
               <span class="export-icon">📝</span>
@@ -6590,6 +6790,36 @@ function update() {
             <div class="animal-emoji">${vd.animal}</div>
             <div><div class="animal-name">${vd.name}</div><div class="animal-alias">${vd.alias}</div></div>
           </div>
+          <div class="section-label">四箭頭視覺圖</div>
+          <div style="display:flex;justify-content:center;margin-bottom:14px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;max-width:340px;width:100%;">
+              ${(() => {
+                const layout = [
+                  { i:0, pos:'↖ 上左', domain:'消化/飲食' },
+                  { i:2, pos:'↗ 上右', domain:'心智/覺知' },
+                  { i:1, pos:'↙ 下左', domain:'環境' },
+                  { i:3, pos:'↘ 下右', domain:'視角/觀點' },
+                ];
+                return layout.map(function(item) {
+                  var a = arrows[item.i];
+                  var isL = a === 'L';
+                  var bg = isL ? '#101e30' : '#1e1028';
+                  var bdr = isL ? '#3060a0' : '#8040b0';
+                  var clr = isL ? '#70a8e0' : '#b880e0';
+                  var arrowSvg = isL
+                    ? '<svg width="28" height="16" viewBox="0 0 28 16"><path d="M24 8H4M4 8l6-5M4 8l6 5" stroke="'+bdr+'" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>'
+                    : '<svg width="28" height="16" viewBox="0 0 28 16"><path d="M4 8H24M24 8l-6-5M24 8l-6 5" stroke="'+bdr+'" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>';
+                  var dirLabel = isL ? '← L 主動' : 'R 被動 →';
+                  return '<div style="background:'+bg+';border:1px solid '+bdr+'40;border-radius:12px;padding:10px 12px;text-align:center;">'
+                    + '<div style="font-size:0.65rem;color:#5a7090;margin-bottom:4px;">'+item.pos+'</div>'
+                    + arrowSvg
+                    + '<div style="font-size:0.78rem;font-weight:800;color:'+clr+';margin-top:4px;">'+dirLabel+'</div>'
+                    + '<div style="font-size:0.68rem;color:#6a7888;margin-top:2px;">'+item.domain+'</div>'
+                    + '</div>';
+                }).join('');
+              })()}
+            </div>
+          </div>
           <div class="section-label">四箭頭解析</div>
           <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
             ${arrows.map((a,i)=>`<div style="background:${a==='L'?'#141e2e':'#1e1428'};border-left:3px solid ${a==='L'?'#305888':'#703888'};border-radius:0 8px 8px 0;padding:7px 12px;font-size:0.82rem;color:#c4ccdc;"><span style="font-weight:700;color:${a==='L'?'#6090c0':'#a060c0'};">${arrowDomains[i].label}（${a}）</span>　${arrowDomains[i][a]}</div>`).join('')}
@@ -7064,9 +7294,17 @@ function update() {
       fullCrossName = ct.name;
     }
 
+    // ── 橋接閘門集合（用於高亮標示） ──
+    const _bridgeGapGates = (() => {
+      if (!def || def === '單一' || def === '無' || checkedChannels.size === 0 || definedCenters.size < 2) return new Set();
+      const br = detectBridges(definedCenters, checkedChannels);
+      return (br && br.islands.length >= 2) ? new Set(br.gapGates) : new Set();
+    })();
+
     // ── 閘門小卡 ──
     const gateCard = (gNum, label, symbol, clr, lineNum = 0) => {
       if (!gNum || gNum < 1 || gNum > 64) return '';
+      const isBridgeGate = _bridgeGapGates.has(gNum);
       const g = GATES_INFO[gNum];
       const gk = GATE_KEYWORDS[gNum];
       if (!g) return '';
@@ -7099,14 +7337,14 @@ function update() {
         </div>`;
       }).join('');
 
-      return `<div class="gate-row">
-        <div class="gate-badge" style="background:${clr}18;border-color:${clr}55;color:${clr};">
+      return `<div class="gate-row" style="${isBridgeGate ? 'border:1px solid #2a5878;border-radius:14px;box-shadow:0 0 12px rgba(40,120,180,0.12);' : ''}">
+        <div class="gate-badge" style="background:${clr}18;border-color:${isBridgeGate ? '#50b8e8' : clr + '55'};color:${clr};${isBridgeGate ? 'box-shadow:0 0 8px rgba(50,150,220,0.25);' : ''}">
           <span style="font-size:1rem;">${symbol}</span>
           <span class="gate-badge-num">${gNum}</span>
         </div>
         <div style="flex:1;min-width:0;">
           <div style="font-size:0.8rem;font-weight:700;color:${clr};letter-spacing:0.06em;margin-bottom:2px;">${label}</div>
-          <div style="font-size:0.93rem;font-weight:800;color:#c8d4e0;">閘門 ${gNum} · ${g.zh}</div>
+          <div style="font-size:0.93rem;font-weight:800;color:#c8d4e0;">閘門 ${gNum} · ${g.zh}${isBridgeGate ? ' <span style="font-size:0.65rem;background:#1a3040;color:#50b8e8;padding:2px 7px;border-radius:6px;border:1px solid #2a6080;font-weight:600;vertical-align:middle;margin-left:4px;">🔗 橋接閘門</span>' : ''}</div>
           <div style="font-size:0.83rem;color:#607888;margin-bottom:4px;">${g.en}</div>
           ${gk ? `<div style="font-size:0.75rem;color:#7090a0;margin-bottom:3px;">核心關鍵字：<span style="color:#90b8c8;">${gk.keynote}</span></div>` : ''}
           <div style="font-size:0.82rem;color:#8098a8;line-height:1.55;margin-bottom:4px;">${g.desc}</div>
@@ -7743,21 +7981,59 @@ function updateProgress() {
 // ══════════════════════════════════════════
 //  範例資料載入
 // ══════════════════════════════════════════
-function loadExample() {
-  // 範例：生產者 / 薦骨權威 / 2/4 人生角色 / 二分定義
-  document.getElementById('sel-type').value = '生產者';
-  document.getElementById('sel-authority').value = '薦骨權威';
-  document.getElementById('sel-role').value = '2/4';
-  document.getElementById('sel-definition').value = '二分';
-  // 設定四箭頭
-  arrows = ['L','R','R','L'];
+const EXAMPLES = {
+  generator: {
+    type: '生產者', authority: '薦骨', role: '2/4', definition: '二分',
+    arrows: ['L','R','R','L'],
+    centers: ['喉嚨','意志力','脾臟','根部','情緒'],
+    channels: ['20-57','35-36','26-44'],
+    cross: [57, 51, 48, 21], nodes: [12, 11, 26, 46],
+    extra: [16, 37, 22]
+  },
+  projector: {
+    type: '投射者', authority: '直覺', role: '5/1', definition: '單一',
+    arrows: ['R','L','L','R'],
+    centers: ['頭腦','邏輯','喉嚨','脾臟','G中心'],
+    channels: ['57-20','48-16'],
+    cross: [1, 2, 7, 13], nodes: [48, 21, 6, 36],
+    extra: [28, 44]
+  },
+  manifestor: {
+    type: '顯示者', authority: '情緒', role: '3/5', definition: '三分',
+    arrows: ['L','L','R','R'],
+    centers: ['喉嚨','情緒','意志力','根部','薦骨','脾臟'],
+    channels: ['21-45','36-35','54-32'],
+    cross: [45, 26, 36, 6], nodes: [33, 19, 44, 24],
+    extra: [3, 50]
+  }
+};
+
+function loadExample(key) {
+  // 關閉選單
+  const menu = document.getElementById('example-menu');
+  if (menu) menu.classList.remove('open');
+
+  const ex = EXAMPLES[key || 'generator'];
+  if (!ex) return;
+
+  // 先重置
+  resetAllSilent();
+
+  document.getElementById('sel-type').value = ex.type;
+  document.getElementById('sel-authority').value = ex.authority;
+  document.getElementById('sel-role').value = ex.role;
+  document.getElementById('sel-definition').value = ex.definition;
+
+  // 四箭頭
+  arrows = [...ex.arrows];
   for (let i=1;i<=4;i++){
     ['L','R'].forEach(v => {
       document.getElementById(`a${i}-${v}`).classList.toggle('active', v === arrows[i-1]);
     });
   }
-  // 啟動一些能量中心
-  ['喉嚨','意志力','脾臟','根部','情緒'].forEach(key => {
+
+  // 能量中心
+  ex.centers.forEach(key => {
     if (!definedCenters.has(key)) {
       definedCenters.add(key);
       const cd = CENTERS_DATA[key];
@@ -7767,32 +8043,78 @@ function loadExample() {
       if (lbl && cd && cd.textLight) lbl.classList.add('w');
     }
   });
-  // 啟動通道
-  ['20-57','35-36','26-44'].forEach(ch => {
+
+  // 通道
+  ex.channels.forEach(ch => {
     if (!checkedChannels.has(ch)) {
       checkedChannels.add(ch);
       const chip = document.getElementById(`chip-${ch}`);
       if (chip) { chip.classList.add('checked'); chip.setAttribute('aria-checked','true'); }
     }
   });
+
   // 輪迴交叉
-  document.getElementById('cross-c-sun').value = 57;
-  document.getElementById('cross-c-earth').value = 51;
-  document.getElementById('cross-c-dsun').value = 48;
-  document.getElementById('cross-c-dearth').value = 21;
+  document.getElementById('cross-c-sun').value = ex.cross[0];
+  document.getElementById('cross-c-earth').value = ex.cross[1];
+  document.getElementById('cross-c-dsun').value = ex.cross[2];
+  document.getElementById('cross-c-dearth').value = ex.cross[3];
+
   // 月交點
-  document.getElementById('node-s-c').value = 12;
-  document.getElementById('node-s-d').value = 11;
-  document.getElementById('node-n-c').value = 26;
-  document.getElementById('node-n-d').value = 46;
-  // 額外散落閘門（範例）
+  document.getElementById('node-s-c').value = ex.nodes[0];
+  document.getElementById('node-s-d').value = ex.nodes[1];
+  document.getElementById('node-n-c').value = ex.nodes[2];
+  document.getElementById('node-n-d').value = ex.nodes[3];
+
+  // 額外閘門
   extraGates.clear();
-  [16, 37, 22].forEach(g => extraGates.add(g));
+  ex.extra.forEach(g => extraGates.add(g));
   renderExtraGates();
 
+  // 展開所有步驟讓使用者看到已填入的資料
+  openStep(1); openStep(2); openStep(3);
+
   update();
-  // 行動裝置自動跳到結果頁
   if (window.innerWidth <= 900) switchMobileTab('output');
+}
+
+// 靜默重置（不觸發確認對話框）
+function resetAllSilent() {
+  document.getElementById('sel-type').value = '';
+  document.getElementById('sel-authority').value = '';
+  document.getElementById('sel-role').value = '';
+  document.getElementById('sel-definition').value = '';
+  arrows = [null, null, null, null];
+  for (let i=1;i<=4;i++) ['L','R'].forEach(v => document.getElementById(`a${i}-${v}`).classList.remove('active'));
+  definedCenters.forEach(key => {
+    const cd = CENTERS_DATA[key];
+    const shape = document.getElementById(`c-${key}`);
+    const lbl = document.getElementById(`t-${key}`);
+    if (shape) { shape.setAttribute('fill', '#2a2d38'); shape.setAttribute('stroke', '#3a3f50'); }
+    if (lbl) lbl.classList.remove('w');
+  });
+  definedCenters.clear();
+  checkedChannels.forEach(ch => {
+    const chip = document.getElementById(`chip-${ch}`);
+    if (chip) { chip.classList.remove('checked'); chip.setAttribute('aria-checked','false'); }
+  });
+  checkedChannels.clear();
+  document.getElementById('cross-c-sun').value = '';
+  document.getElementById('cross-c-earth').value = '';
+  document.getElementById('cross-c-dsun').value = '';
+  document.getElementById('cross-c-dearth').value = '';
+  document.getElementById('node-s-c').value = '';
+  document.getElementById('node-s-d').value = '';
+  document.getElementById('node-n-c').value = '';
+  document.getElementById('node-n-d').value = '';
+  extraGates.clear();
+  renderExtraGates();
+  // PHS/env fields
+  const selColor = document.getElementById('sel-color');
+  const selTone = document.getElementById('sel-tone');
+  const selEnv = document.getElementById('sel-env');
+  if (selColor) selColor.value = '';
+  if (selTone) selTone.value = '';
+  if (selEnv) selEnv.value = '';
 }
 
 // ══════════════════════════════════════════
@@ -7862,98 +8184,63 @@ function exportPDF() {
   const mainOutput = document.getElementById('main-output');
   if (!mainOutput) return alert('請先輸入資料再匯出');
 
-  // 1) 複製內容 HTML
+  // 1) 複製內容的純文字結構（不依賴 innerHTML + inline style）
+  // 核心策略：提取文字內容，用乾淨的 HTML 重建
   let html = mainOutput.innerHTML;
 
-  // 2) 用 regex 替換所有 inline color 為深色
-  html = html.replace(/(?<![a-z-])color\s*:\s*#[0-9a-fA-F]{3,8}/gi, 'color:#1a1a1a');
-  html = html.replace(/(?<![a-z-])color\s*:\s*rgb\([^)]+\)/gi, 'color:#1a1a1a');
-  html = html.replace(/(?<![a-z-])color\s*:\s*rgba\([^)]+\)/gi, 'color:#1a1a1a');
-  // 替換 background
-  html = html.replace(/background\s*:\s*linear-gradient\([^)]+\)/gi, 'background:#f0f2f5');
-  html = html.replace(/background-color\s*:\s*#[0-9a-fA-F]{3,8}/gi, 'background-color:#ffffff');
-  html = html.replace(/(?<![a-z-])background\s*:\s*#[0-9a-fA-F]{3,8}/gi, 'background:#ffffff');
-  html = html.replace(/background\s*:\s*rgb\([^)]+\)/gi, 'background:#ffffff');
-  html = html.replace(/background\s*:\s*rgba\([^)]+\)/gi, 'background:#ffffff');
-  // border-color 淺灰
-  html = html.replace(/border-color\s*:\s*#[0-9a-fA-F]{3,8}/gi, 'border-color:#ccc');
-  html = html.replace(/border\s*:\s*1px\s+solid\s+#[0-9a-fA-F]{3,8}/gi, 'border:1px solid #ccc');
-  // 移除 box-shadow
-  html = html.replace(/box-shadow\s*:\s*[^;]+/gi, 'box-shadow:none');
-
-  // 3) 額外清理：移除 collapsed 狀態和可能隱藏內容的 inline style
+  // 2) 移除所有 inline style（Chrome 列印引擎無法正確渲染帶 inline style 的文字）
+  html = html.replace(/\s+style\s*=\s*"[^"]*"/gi, '');
+  html = html.replace(/\s+style\s*=\s*'[^']*'/gi, '');
+  // 移除 collapsed class
   html = html.replace(/\bcollapsed\b/g, '');
-  html = html.replace(/max-height\s*:\s*[^;]+;?/gi, 'max-height:none;');
-  html = html.replace(/opacity\s*:\s*[01](?:\.\d+)?;?/gi, 'opacity:1;');
-  html = html.replace(/overflow\s*:\s*hidden;?/gi, 'overflow:visible;');
 
-  // 4) 組裝完整 HTML
-  const fullHtml = `<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-<meta charset="UTF-8">
-<title>HD Decode 人類圖解讀報告 - ${userName}</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; color: #1a1a1a !important; -webkit-text-fill-color: #1a1a1a !important; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif;
-    background: #fff !important; color: #1a1a1a !important; font-size: 13px; line-height: 1.6; padding: 20px 28px;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
-  }
-  .pdf-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 14px; margin-bottom: 20px; }
-  .pdf-header h2 { font-size: 1.3rem; margin-bottom: 4px; }
-  .pdf-header .meta { font-size: 0.85rem; color: #666 !important; -webkit-text-fill-color: #666 !important; }
-  .output-card { border: 1px solid #ccc; border-radius: 8px; margin-bottom: 14px; overflow: visible !important; page-break-inside: avoid; }
-  .card-header { background: #f0f2f5 !important; padding: 10px 16px; border-bottom: 1px solid #ddd; }
-  .card-header::after { display: none !important; }
-  .card-title { font-weight: 800; font-size: 1rem; }
-  .card-subtitle { color: #666 !important; -webkit-text-fill-color: #666 !important; font-size: 0.85rem; }
-  .card-icon { background: rgba(0,0,0,0.06) !important; border-radius: 8px; padding: 4px; }
-  .card-body, .card-body-collapsible { padding: 14px 18px !important; max-height: none !important; opacity: 1 !important; overflow: visible !important; height: auto !important; display: block !important; }
-  .card-collapse-btn { display: none !important; }
-  table { border-collapse: collapse; width: 100%; }
-  table td, table th { border: 1px solid #ccc; padding: 6px 10px; }
-  table th { background: #f0f2f5 !important; font-weight: 700; }
-  .tag-strategy, .tag-nonself, .tag-percent { background: #f0f0f0 !important; border: 1px solid #bbb; }
-  .ability-group-title { background: #eee !important; }
-  .channel-chip { background: #f5f5f5 !important; border: 1px solid #bbb; }
-  .freq-toggle, .toc-bar, .btn-view-results, .export-dropdown, .btn-example, .pdf-print-header { display: none !important; }
-  @media print {
-    * { color: #1a1a1a !important; -webkit-text-fill-color: #1a1a1a !important; }
-    body { padding: 10px 16px; background: #fff !important; }
-    .output-card { page-break-inside: avoid; }
-    .card-body, .card-body-collapsible { max-height: none !important; opacity: 1 !important; overflow: visible !important; display: block !important; }
-  }
-</style>
-</head>
-<body>
-<div class="pdf-header">
-  <h2>HD Decode ✦ 人類圖解讀報告</h2>
-  <div class="meta">解析對象：${userName}　｜　${new Date().toLocaleString('zh-TW')}</div>
-</div>
-${html}
-<script>
-// 列印後提示使用者可以關閉此分頁
-window.onafterprint = function() {
-  document.title = '✅ PDF 已儲存 — 可關閉此分頁';
-};
-<\/script>
-</body>
-</html>`;
+  // 3) 用 document.write 寫入新視窗（避免 Blob URL / about:blank 問題）
+  const printWin = window.open('', '_blank');
+  if (!printWin) return alert('請允許彈出視窗後再試一次');
+  const css = [
+    '* { box-sizing: border-box; }',
+    'body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", sans-serif; background: #fff; color: #222; font-size: 13px; line-height: 1.65; padding: 24px 32px; margin: 0; }',
+    '.pdf-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 14px; margin-bottom: 20px; }',
+    '.pdf-header h2 { font-size: 1.3rem; margin: 0 0 4px; }',
+    '.pdf-header .meta { font-size: 0.85rem; color: #666; }',
+    '.output-card { border: 1px solid #ccc; border-radius: 8px; margin-bottom: 16px; overflow: visible; page-break-inside: avoid; }',
+    '.card-header { background: #f0f2f5; padding: 12px 16px; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 10px; }',
+    '.card-header::after { display: none; }',
+    '.card-title { font-weight: 800; font-size: 1rem; }',
+    '.card-subtitle { color: #666; font-size: 0.85rem; margin-top: 2px; }',
+    '.card-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.06); border-radius: 8px; font-size: 1.1rem; }',
+    '.card-body, .card-body-collapsible { padding: 16px 18px; }',
+    '.card-collapse-btn { display: none; }',
+    'p { margin-bottom: 8px; font-size: 0.9rem; }',
+    'strong, b { font-weight: 700; }',
+    'a { color: #0055aa; }',
+    'ul, ol { margin: 8px 0; padding-left: 20px; }',
+    'li { margin-bottom: 4px; font-size: 0.9rem; }',
+    'h3, h4, h5 { margin: 12px 0 6px; }',
+    'span { font-size: inherit; }',
+    '.tag-strategy, .tag-nonself, .tag-percent { display: inline-block; padding: 4px 12px; border-radius: 20px; background: #f0f0f0; border: 1px solid #bbb; font-size: 0.85rem; margin: 3px 4px 3px 0; }',
+    '.ability-group-title { background: #eee; padding: 6px 12px; border-radius: 6px; font-weight: 700; margin: 10px 0 6px; font-size: 0.85rem; }',
+    '.channel-chip { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #f5f5f5; border: 1px solid #bbb; font-size: 0.82rem; margin: 2px; }',
+    'table { border-collapse: collapse; width: 100%; margin: 8px 0; }',
+    'td, th { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 0.85rem; }',
+    'th { background: #f0f2f5; font-weight: 700; }',
+    '.freq-toggle, .toc-bar, .btn-view-results, .export-dropdown, .btn-example, .pdf-print-header { display: none; }',
+    '@media print { body { padding: 12px 16px; } .output-card { page-break-inside: avoid; } }'
+  ].join('\n');
 
-  // 5) 用 Blob URL 開新視窗（比 about:blank 更可靠）
-  const blob = new Blob([fullHtml], { type: 'text/html; charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const printWin = window.open(url, '_blank');
+  printWin.document.open();
+  printWin.document.write('<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">');
+  printWin.document.write('<title>HD Decode 報告 - ' + userName + '</title>');
+  printWin.document.write('<style>' + css + '</style>');
+  printWin.document.write('</head><body>');
+  printWin.document.write('<div class="pdf-header"><h2>HD Decode ✦ 人類圖解讀報告</h2>');
+  printWin.document.write('<div class="meta">解析對象：' + userName + '　｜　' + new Date().toLocaleString('zh-TW') + '</div></div>');
+  printWin.document.write(html);
+  printWin.document.write('</body></html>');
+  printWin.document.close();
 
-  // 6) 等視窗載入完成後自動列印
-  printWin.onload = () => {
-    setTimeout(() => {
-      printWin.focus();
-      printWin.print();
-      URL.revokeObjectURL(url);
-    }, 600);
-  };
+  // 使用者在新分頁確認內容後，按 Cmd+P / Ctrl+P 列印
+  // 不自動觸發 print()，避免 Chrome 時序問題
 }
 
 // ══════════════════════════════════════════
@@ -8089,6 +8376,9 @@ function restoreFormData() {
       data.extraGates.forEach(g => extraGates.add(g));
       renderExtraGates();
     }
+
+    // 展開所有含資料的步驟
+    openStep(1); openStep(2); openStep(3);
 
     return true;
   } catch (e) { return false; }
