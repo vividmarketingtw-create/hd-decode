@@ -901,8 +901,33 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
+
+  /* ── 列印樣式（PDF 匯出用） ── */
+  @media print {
+    /* 隱藏側欄和不需要的 UI */
+    .sidebar, .toc-bar, .card-collapse-btn, .export-dropdown,
+    .btn-view-results, .mobile-tabs, .freq-toggle,
+    .empty-state, .confirm-overlay { display: none !important; }
+
+    /* 全版面給 main output */
+    body { background: #0c1420 !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .layout { display: block !important; }
+    .main { margin: 0 !important; padding: 16px !important; width: 100% !important; max-width: 100% !important; min-height: auto !important; }
+
+    /* 確保卡片展開且不被截斷 */
+    .card-body-collapsible { max-height: none !important; opacity: 1 !important; padding: 22px 24px !important; overflow: visible !important; }
+    .output-card { break-inside: avoid; margin-bottom: 12px; box-shadow: none !important; border: 1px solid #2a3858 !important; }
+
+    /* PDF 標題（只在列印時顯示） */
+    .pdf-print-header { display: block !important; }
+
+    /* 保留深色背景和顏色 */
+    .card-header, .output-card, .card-body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* 平常隱藏 PDF 標題 */
+  .pdf-print-header { display: none; }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" defer></script>
 </head>
 <body>
 
@@ -1483,6 +1508,11 @@
 
   <!-- ── MAIN OUTPUT ── -->
   <main class="main" id="main-output">
+    <div class="pdf-print-header" style="text-align:center;padding:20px 0 16px;">
+      <div style="font-size:24px;font-weight:800;color:#70d0f8;">HD Decode ✦ 人類圖解讀報告</div>
+      <div id="pdf-print-meta" style="font-size:13px;color:#6a8898;margin-top:6px;"></div>
+      <div style="margin-top:12px;height:1px;background:linear-gradient(90deg,transparent,#2a4858,transparent);"></div>
+    </div>
     <div class="empty-state">
       <div class="empty-text">在左側選擇參數，解析內容將即時顯示於此</div>
 
@@ -5989,7 +6019,7 @@ function update() {
           <div class="export-menu" id="export-menu">
             <button class="export-menu-item" onclick="exportPDF(); closeExportMenu();">
               <span class="export-icon">📄</span>
-              <span><span class="export-label">匯出為 PDF</span><br><span class="export-desc">保留完整排版與樣式</span></span>
+              <span><span class="export-label">匯出為 PDF</span><br><span class="export-desc">開啟列印預覽 → 選擇「儲存為 PDF」</span></span>
             </button>
             <button class="export-menu-item" onclick="exportResults(); closeExportMenu();">
               <span class="export-icon">📝</span>
@@ -7836,91 +7866,14 @@ function closeExportMenu() {
 //  匯出為 PDF（保留網頁排版）
 // ══════════════════════════════════════════
 function exportPDF() {
-  const out = document.getElementById('main-output');
-  if (!out) return;
-
+  // 更新列印用標題
   const userName = (document.getElementById('user-name')?.value || '').trim() || '未命名';
-  const fileName = `HD-Decode-${userName}-${new Date().toISOString().slice(0,10)}.pdf`;
-
-  // 按鈕回饋
-  const exportBtn = document.querySelector('.toc-btn-export');
-  if (exportBtn) { exportBtn.textContent = '⏳ 產生中…'; exportBtn.disabled = true; }
-
-  // 方法：直接擷取 main-output 區域
-  // 先暫時隱藏不需要的互動元素
-  const hideEls = out.querySelectorAll('.toc-bar, .card-collapse-btn, .export-dropdown, .freq-toggle');
-  hideEls.forEach(el => el.style.display = 'none');
-
-  // 展開所有收合的卡片
-  const collapsedEls = out.querySelectorAll('.card-body-collapsible.collapsed');
-  collapsedEls.forEach(el => {
-    el.classList.remove('collapsed');
-    el.dataset.wasCollapsed = 'true';
-  });
-
-  // 暫時調整 main-output 的樣式讓擷取更好
-  const origStyle = out.style.cssText;
-  out.style.cssText += ';width:800px;max-width:800px;overflow:visible;';
-
-  // 在頂部插入標題
-  const header = document.createElement('div');
-  header.id = 'pdf-header-temp';
-  header.style.cssText = 'text-align:center;margin-bottom:24px;padding:20px;';
-  header.innerHTML = `
-    <div style="font-size:24px;font-weight:800;color:#70d0f8;margin-bottom:6px;">HD Decode ✦ 人類圖解讀報告</div>
-    <div style="font-size:13px;color:#6a8898;">解析對象：${userName}　｜　${new Date().toLocaleString('zh-TW')}</div>
-    <div style="margin-top:12px;height:1px;background:linear-gradient(90deg,transparent,#2a4858,transparent);"></div>
-  `;
-  out.insertBefore(header, out.firstChild);
-
-  // 給瀏覽器時間重排
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const opt = {
-        margin:       [8, 6, 8, 6],
-        filename:     fileName,
-        image:        { type: 'jpeg', quality: 0.92 },
-        html2canvas:  {
-          scale: 1.5,
-          useCORS: true,
-          backgroundColor: '#0c1420',
-          logging: false,
-          removeContainer: true
-        },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] }
-      };
-
-      html2pdf().set(opt).from(out).save().then(() => {
-        cleanup();
-      }).catch(err => {
-        console.error('PDF export error:', err);
-        cleanup();
-        alert('PDF 匯出失敗，請改用純文字匯出。');
-      });
-
-      function cleanup() {
-        // 還原所有隱藏的元素
-        hideEls.forEach(el => el.style.display = '');
-        // 還原收合的卡片
-        out.querySelectorAll('[data-was-collapsed]').forEach(el => {
-          el.classList.add('collapsed');
-          delete el.dataset.wasCollapsed;
-        });
-        // 移除臨時標題
-        const h = document.getElementById('pdf-header-temp');
-        if (h) h.remove();
-        // 還原樣式
-        out.style.cssText = origStyle;
-        // 還原按鈕
-        if (exportBtn) {
-          exportBtn.textContent = '✅ 完成！';
-          exportBtn.disabled = false;
-          setTimeout(() => { exportBtn.textContent = '⬇ 匯出報告'; }, 2500);
-        }
-      }
-    }, 200);
-  });
+  const meta = document.getElementById('pdf-print-meta');
+  if (meta) {
+    meta.textContent = `解析對象：${userName}　｜　${new Date().toLocaleString('zh-TW')}`;
+  }
+  // 呼叫瀏覽器列印（使用者可在列印對話框中選擇「儲存為 PDF」）
+  window.print();
 }
 
 // ══════════════════════════════════════════
