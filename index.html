@@ -808,6 +808,25 @@
   }
   .toc-btn-export { background: #0d1e18; color: #50b880; border-color: #1e4830; }
   .toc-btn-export:hover { background: #122818; color: #60d090; border-color: #2a6840; }
+
+  /* ── 匯出下拉選單 ── */
+  .export-dropdown { position: relative; display: inline-block; }
+  .export-menu {
+    display: none; position: absolute; bottom: 110%; right: 0; min-width: 180px;
+    background: #1a2a20; border: 1px solid #2a5038; border-radius: 10px;
+    padding: 6px; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .export-menu.show { display: block; }
+  .export-menu-item {
+    display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 7px;
+    color: #90c8a8; font-size: 0.75rem; font-weight: 600; cursor: pointer;
+    border: none; background: transparent; width: 100%; text-align: left;
+    transition: background 0.15s;
+  }
+  .export-menu-item:hover { background: #224030; color: #b0e8c8; }
+  .export-menu-item .export-icon { font-size: 1rem; width: 20px; text-align: center; }
+  .export-menu-item .export-label { flex: 1; }
+  .export-menu-item .export-desc { font-size: 0.6rem; color: #5a8870; font-weight: 400; }
   .toc-btn-collapse { background: #1a1428; color: #9080c0; border-color: #2a2048; }
   .toc-btn-collapse:hover { background: #201838; color: #a090d0; border-color: #3a2858; }
 
@@ -883,6 +902,7 @@
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js" defer></script>
 </head>
 <body>
 
@@ -928,6 +948,7 @@
           onfocus="this.style.borderColor='#4a80a8'"
           onblur="this.style.borderColor='#2a3848'">
       </div>
+      <button class="btn-example" onclick="loadExample()" style="margin-top:10px;width:100%;">✦ 載入範例資料（快速預覽效果）</button>
     </div>
 
     <!-- 基本參數 -->
@@ -1433,7 +1454,6 @@
       ✦ 查看完整版進階分析結果 →
     </button>
 
-    <button class="btn-example" onclick="loadExample()">✦ 載入範例資料（快速預覽效果）</button>
     <button class="btn-reset" onclick="confirmReset()">↺ 重置所有選項</button>
   </aside>
 
@@ -5888,7 +5908,19 @@ function update() {
       ${tocItems.map(t => `<span class="toc-item" onclick="document.getElementById('${t.id}')?.scrollIntoView({behavior:'smooth',block:'start'})">${t.icon} ${t.label}</span>`).join('')}
       <div class="toc-actions">
         <button class="toc-action-btn toc-btn-collapse" id="toc-collapse-btn" onclick="toggleAllCards(this.textContent.includes('展開'))">收合全部</button>
-        <button class="toc-action-btn toc-btn-export" onclick="exportResults()">⬇ 匯出報告</button>
+        <div class="export-dropdown">
+          <button class="toc-action-btn toc-btn-export" onclick="toggleExportMenu(event)">⬇ 匯出報告</button>
+          <div class="export-menu" id="export-menu">
+            <button class="export-menu-item" onclick="exportPDF(); closeExportMenu();">
+              <span class="export-icon">📄</span>
+              <span><span class="export-label">匯出為 PDF</span><br><span class="export-desc">保留完整排版與樣式</span></span>
+            </button>
+            <button class="export-menu-item" onclick="exportResults(); closeExportMenu();">
+              <span class="export-icon">📝</span>
+              <span><span class="export-label">匯出為純文字</span><br><span class="export-desc">TXT 格式，方便複製貼上</span></span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>`;
   }
@@ -7532,6 +7564,119 @@ function toggleAllCards(expand) {
   if (colBtn) {
     colBtn.textContent = expand ? '收合全部' : '展開全部';
   }
+}
+
+// ══════════════════════════════════════════
+//  匯出下拉選單控制
+// ══════════════════════════════════════════
+function toggleExportMenu(e) {
+  e.stopPropagation();
+  const menu = document.getElementById('export-menu');
+  if (!menu) return;
+  menu.classList.toggle('show');
+  // 點擊外部關閉
+  if (menu.classList.contains('show')) {
+    setTimeout(() => {
+      document.addEventListener('click', closeExportMenu, { once: true });
+    }, 10);
+  }
+}
+function closeExportMenu() {
+  const menu = document.getElementById('export-menu');
+  if (menu) menu.classList.remove('show');
+}
+
+// ══════════════════════════════════════════
+//  匯出為 PDF（保留網頁排版）
+// ══════════════════════════════════════════
+function exportPDF() {
+  const out = document.getElementById('main-output');
+  if (!out) return;
+
+  const userName = (document.getElementById('user-name')?.value || '').trim() || '未命名';
+  const fileName = `HD-Decode-${userName}-${new Date().toISOString().slice(0,10)}.pdf`;
+
+  // 建立一個乾淨的容器來渲染 PDF
+  const container = document.createElement('div');
+  container.style.cssText = `
+    position: fixed; left: -9999px; top: 0; width: 800px;
+    background: #0c1420; color: #c8d8e8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding: 40px 32px;
+  `;
+
+  // 加入標題
+  const header = document.createElement('div');
+  header.innerHTML = `
+    <div style="text-align:center; margin-bottom: 32px;">
+      <div style="font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #70d0f8, #50b880); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px;">
+        HD Decode ✦ 人類圖解讀報告
+      </div>
+      <div style="font-size: 14px; color: #6a8898; margin-bottom: 4px;">解析對象：${userName}</div>
+      <div style="font-size: 12px; color: #4a6878;">產生時間：${new Date().toLocaleString('zh-TW')}</div>
+      <div style="margin-top: 16px; height: 1px; background: linear-gradient(90deg, transparent, #2a4858, transparent);"></div>
+    </div>
+  `;
+  container.appendChild(header);
+
+  // 複製所有卡片內容
+  const cards = out.querySelectorAll('.output-card');
+  cards.forEach(card => {
+    const clone = card.cloneNode(true);
+    // 移除收合按鈕
+    clone.querySelectorAll('.card-collapse-btn').forEach(b => b.remove());
+    // 確保所有卡片展開
+    clone.querySelectorAll('.card-body-collapsible').forEach(el => {
+      el.classList.remove('collapsed');
+      el.style.maxHeight = 'none';
+      el.style.opacity = '1';
+      el.style.padding = '';
+    });
+    // 移除不需要的互動元素
+    clone.querySelectorAll('button, .toc-bar, .toc-actions').forEach(el => el.remove());
+    container.appendChild(clone);
+  });
+
+  document.body.appendChild(container);
+
+  // 設定 PDF 參數
+  const opt = {
+    margin:       [10, 10, 10, 10],
+    filename:     fileName,
+    image:        { type: 'jpeg', quality: 0.95 },
+    html2canvas:  {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#0c1420',
+      logging: false,
+      windowWidth: 800
+    },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  // 產生 PDF 的按鈕回饋
+  const exportBtn = document.querySelector('.toc-btn-export');
+  if (exportBtn) {
+    exportBtn.textContent = '⏳ 產生中…';
+    exportBtn.disabled = true;
+  }
+
+  html2pdf().set(opt).from(container).save().then(() => {
+    document.body.removeChild(container);
+    if (exportBtn) {
+      exportBtn.textContent = '✅ 完成！';
+      exportBtn.disabled = false;
+      setTimeout(() => { exportBtn.textContent = '⬇ 匯出報告'; }, 2000);
+    }
+  }).catch(err => {
+    console.error('PDF export error:', err);
+    document.body.removeChild(container);
+    if (exportBtn) {
+      exportBtn.textContent = '⬇ 匯出報告';
+      exportBtn.disabled = false;
+    }
+    alert('PDF 匯出失敗，請改用純文字匯出。');
+  });
 }
 
 // ══════════════════════════════════════════
