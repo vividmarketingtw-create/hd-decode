@@ -6110,42 +6110,123 @@ function update() {
     });
     panel += `</div></div>`;
 
-    // 橋接通道列表
+    // 橋接通道列表（重新設計：清楚標示已有 vs 缺少）
     if (bridge.bridges.length > 0) {
-      panel += `<div style="margin-bottom:14px;">
-        <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase;">⬡ 可橋接的通道（缺口分析）</div>
-        <div style="background:#0d1420;border:1px solid #1e2840;border-radius:10px;padding:10px 14px;">
-          <div style="font-size:0.78rem;color:#8090a8;margin-bottom:4px;line-height:1.5;">您的${def}定義有 <strong style="color:#e0a050;">${bridge.islands.length} 個能量島嶼</strong>，以下通道如果被啟動（由行運或橋樑人帶來），可以連結不同島嶼：</div>
-          <div style="font-size:0.76rem;color:#6a8098;margin-bottom:8px;line-height:1.5;">當任何一條通道被接通時，您兩座島之間的能量就能自由流動——您會感到思路更清晰、內在更流暢。金色標記（⭐🌙）代表與您的人生使命或業力課題相關的特殊橋接。</div>
-          <div style="display:flex;flex-direction:column;gap:4px;">`;
-
-      // 限制顯示數量避免過長
-      const showBridges = bridge.bridges.slice(0, 12);
-      showBridges.forEach(b => {
-        const g1 = b.gates[0];
-        const g2 = b.gates[1];
-        const g1IsCross = crossGates.includes(g1);
-        const g2IsCross = crossGates.includes(g2);
-        const g1IsNode = nodeGates.includes(g1);
-        const g2IsNode = nodeGates.includes(g2);
-        const g1Hit = g1IsCross || g1IsNode;
-        const g2Hit = g2IsCross || g2IsNode;
-        const anyHit = g1Hit || g2Hit;
-        const borderClr = anyHit ? '#e0a050' : '#2a3848';
-        const bgClr = anyHit ? '#2a200e' : '#0a1018';
-        panel += `<div style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:${bgClr};border:1px solid ${borderClr};border-radius:7px;font-size:0.76rem;">
-          <span style="font-weight:800;color:${anyHit ? '#e0a050' : '#6080a0'};">${b.channel}</span>
-          <span style="color:#506878;">( ${b.from} ↔ ${b.to} )</span>
-          <span style="color:#5a6878;">閘門 </span>
-          <span style="font-weight:700;color:${g1Hit ? '#e0a050' : '#7090b0'};">${g1}${g1IsCross ? ' ⭐交叉' : ''}${g1IsNode ? ' 🌙月交' : ''}</span>
-          <span style="color:#5a6878;">/</span>
-          <span style="font-weight:700;color:${g2Hit ? '#e0a050' : '#7090b0'};">${g2}${g2IsCross ? ' ⭐交叉' : ''}${g2IsNode ? ' 🌙月交' : ''}</span>
-        </div>`;
+      // 建立使用者已有的閘門集合（從已啟動通道推導）
+      const userGates = new Set();
+      checkedChannels.forEach(chId => {
+        chId.split('-').forEach(g => userGates.add(Number(g)));
       });
-      if (bridge.bridges.length > 12) {
-        panel += `<div style="font-size:0.8rem;color:#5a6878;padding:4px 10px;">…還有 ${bridge.bridges.length - 12} 條橋接通道</div>`;
-      }
-      panel += `</div></div></div>`;
+      // 也把交叉和月交點閘門視為使用者的能量（會被啟動）
+      crossGates.forEach(g => userGates.add(g));
+      nodeGates.forEach(g => userGates.add(g));
+
+      panel += `<div style="margin-bottom:14px;">
+        <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase;">⬡ 缺口通道分析 Bridge Channel Analysis</div>
+        <div style="background:#0d1420;border:1px solid #1e2840;border-radius:10px;padding:14px 16px;">
+          <div style="font-size:0.82rem;color:#a0b8d0;margin-bottom:6px;line-height:1.65;">
+            以下是能連結您不同島嶼的通道——<strong style="color:#e0a050;">您目前沒有這些通道</strong>，但如果它們被啟動（由行運或身邊的人帶來），您的能量就能貫通。
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding:8px 0;border-bottom:1px solid #1e2840;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#40a870;"></span>
+              <span style="color:#7898a8;">= 您已有此閘門</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#c05050;"></span>
+              <span style="color:#7898a8;">= 缺少的閘門（需要別人帶來）</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:0.72rem;">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#e0a050;"></span>
+              <span style="color:#7898a8;">= 交叉/月交點閘門</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;">`;
+
+      // 按照島嶼連結分組
+      const groupKey = (b) => `${Math.min(b.islandA,b.islandB)}-${Math.max(b.islandA,b.islandB)}`;
+      const groups = {};
+      bridge.bridges.forEach(b => {
+        const k = groupKey(b);
+        if (!groups[k]) groups[k] = { from: b.islandA, to: b.islandB, channels: [] };
+        groups[k].channels.push(b);
+      });
+
+      Object.values(groups).forEach(group => {
+        const islA = bridge.islands[group.from];
+        const islB = bridge.islands[group.to];
+        const clrA = islandColors[group.from % islandColors.length];
+        const clrB = islandColors[group.to % islandColors.length];
+
+        panel += `<div style="margin-bottom:6px;">
+          <div style="font-size:0.72rem;color:#5a7898;margin-bottom:5px;display:flex;align-items:center;gap:6px;">
+            <span style="color:${clrA};font-weight:700;">島嶼${group.from+1}（${islA.join('、')}）</span>
+            <span style="color:#3a5060;">⟷</span>
+            <span style="color:${clrB};font-weight:700;">島嶼${group.to+1}（${islB.join('、')}）</span>
+            <span style="color:#3a5060;font-size:0.68rem;">共 ${group.channels.length} 條可橋接</span>
+          </div>`;
+
+        group.channels.forEach(b => {
+          const g1 = b.gates[0];
+          const g2 = b.gates[1];
+          const g1Has = userGates.has(g1);
+          const g2Has = userGates.has(g2);
+          const g1IsCross = crossGates.includes(g1);
+          const g2IsCross = crossGates.includes(g2);
+          const g1IsNode = nodeGates.includes(g1);
+          const g2IsNode = nodeGates.includes(g2);
+          const g1Special = g1IsCross || g1IsNode;
+          const g2Special = g2IsCross || g2IsNode;
+          const anySpecial = g1Special || g2Special;
+          const borderClr = anySpecial ? '#e0a05060' : '#1e2840';
+          const bgClr = anySpecial ? '#1a1808' : '#0a1018';
+
+          // 計算缺口狀態
+          const bothMissing = !g1Has && !g2Has;
+          const oneHas = (g1Has && !g2Has) || (!g1Has && g2Has);
+          let statusText = '';
+          let statusClr = '';
+          if (bothMissing) { statusText = '缺兩端'; statusClr = '#c05050'; }
+          else if (oneHas) { statusText = '只缺一端 — 較容易被接通！'; statusClr = '#40a870'; }
+
+          function gateStyle(g, has, special, isCross, isNode) {
+            let bg, clr, border;
+            if (special) { bg = '#2a1e0a'; clr = '#e0c070'; border = '#e0a05060'; }
+            else if (has) { bg = '#0a1e14'; clr = '#60c890'; border = '#40a87060'; }
+            else { bg = '#1a0e0e'; clr = '#d07070'; border = '#c0505060'; }
+            let label = 'G' + g;
+            if (isCross) label += ' ⭐交叉';
+            if (isNode) label += ' 🌙月交';
+            if (has && !special) label += ' ✓已有';
+            if (!has && !special) label += ' ✗缺少';
+            return '<span style="background:' + bg + ';border:1px solid ' + border + ';border-radius:6px;padding:3px 8px;font-weight:700;font-size:0.76rem;color:' + clr + ';">' + label + '</span>';
+          }
+
+          panel += `<div style="background:${bgClr};border:1px solid ${borderClr};border-radius:9px;padding:8px 12px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span style="font-weight:800;color:${anySpecial ? '#e0a050' : '#6080a0'};font-size:0.82rem;min-width:45px;">${b.channel}</span>
+              <span style="color:#3a5060;font-size:0.72rem;">${b.from} ↔ ${b.to}</span>
+              <div style="display:flex;gap:5px;align-items:center;">
+                ${gateStyle(g1, g1Has, g1Special, g1IsCross, g1IsNode)}
+                <span style="color:#2a3848;">+</span>
+                ${gateStyle(g2, g2Has, g2Special, g2IsCross, g2IsNode)}
+              </div>
+              ${statusText ? '<span style="font-size:0.68rem;color:' + statusClr + ';font-weight:600;margin-left:auto;">' + statusText + '</span>' : ''}
+            </div>
+          </div>`;
+        });
+
+        panel += `</div>`;
+      });
+
+      panel += `</div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid #1e2840;">
+          <div style="font-size:0.76rem;color:#607888;line-height:1.6;">
+            <strong style="color:#8098b0;">白話來說：</strong>標示「<span style="color:#60c890;">✓已有</span>」的閘門代表您本身就帶著這股能量。如果一條通道中您只缺一端，就表示只要遇到帶有那個缺少閘門的人、或行運走到那個閘門時，通道就會被暫時「接通」，您就會明顯感到能量變順暢。<br>
+            而兩端都缺的通道，則需要更特定的條件才會被啟動——通常是遇到同時帶有兩個閘門的人，或兩個行運同時走到。
+          </div>
+        </div>
+      </div></div>`;
     }
 
     // 橋接閘門 × 交叉/月交點的命運連結
