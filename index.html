@@ -5079,9 +5079,21 @@ function init() {
       </div>`;
     grid.appendChild(div);
   });
+  // 嘗試還原上次儲存的資料
+  const restored = restoreFormData();
+
   // 行動裝置：頁面載入時先顯示「解析結果」tab（顯示歡迎指南）
   if (window.innerWidth <= 900) switchMobileTab('output');
   update();
+
+  // 如果有還原資料，顯示一個簡短提示
+  if (restored) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a2a20;color:#60c890;border:1px solid #2a5038;border-radius:10px;padding:10px 20px;font-size:0.82rem;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.4);transition:opacity 0.5s;';
+    toast.textContent = '✓ 已自動還原上次的資料';
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 600); }, 2500);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -5213,6 +5225,8 @@ function resetAll() {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
+  // 清除 localStorage 儲存的資料
+  clearSavedData();
   // 清除所有驗證錯誤樣式
   document.querySelectorAll('.input-invalid').forEach(el => el.classList.remove('input-invalid'));
   document.querySelectorAll('.input-error-msg').forEach(el => el.remove());
@@ -5808,6 +5822,7 @@ function getCrossType(role) {
 // ══════════════════════════════════════════
 function update() {
   updateProgress();
+  saveFormData();
   const userName = (document.getElementById('user-name')?.value || '').trim();
   const type = document.getElementById('sel-type').value;
   const auth = document.getElementById('sel-authority').value;
@@ -7789,6 +7804,110 @@ function exportResults() {
   a.download = `HD-Decode-${userName}-${new Date().toISOString().slice(0,10)}.txt`;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+// ══════════════════════════════════════════
+//  自動儲存 / 還原表單資料（localStorage）
+// ══════════════════════════════════════════
+const STORAGE_KEY = 'hd-decode-saved-data';
+
+function saveFormData() {
+  try {
+    const data = {
+      userName: document.getElementById('user-name')?.value || '',
+      type: document.getElementById('sel-type')?.value || '',
+      authority: document.getElementById('sel-authority')?.value || '',
+      role: document.getElementById('sel-role')?.value || '',
+      definition: document.getElementById('sel-definition')?.value || '',
+      color: document.getElementById('sel-color')?.value || '',
+      tone: document.getElementById('sel-tone')?.value || '',
+      env: document.getElementById('sel-env')?.value || '',
+      arrows: arrows,
+      detLR: detLR,
+      envMode: envMode,
+      channels: [...checkedChannels],
+      centers: [...definedCenters],
+      crossSun: document.getElementById('cross-c-sun')?.value || '',
+      crossEarth: document.getElementById('cross-c-earth')?.value || '',
+      crossDSun: document.getElementById('cross-c-dsun')?.value || '',
+      crossDEarth: document.getElementById('cross-c-dearth')?.value || '',
+      nodeSC: document.getElementById('node-s-c')?.value || '',
+      nodeSD: document.getElementById('node-s-d')?.value || '',
+      nodeNC: document.getElementById('node-n-c')?.value || '',
+      nodeND: document.getElementById('node-n-d')?.value || '',
+      nodeAge: document.getElementById('node-age')?.value || '',
+      savedAt: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) { /* 無痕模式等情況下可能失敗，忽略 */ }
+}
+
+function restoreFormData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+
+    // 基本欄位
+    if (data.userName) document.getElementById('user-name').value = data.userName;
+    if (data.type) document.getElementById('sel-type').value = data.type;
+    if (data.authority) document.getElementById('sel-authority').value = data.authority;
+    if (data.role) document.getElementById('sel-role').value = data.role;
+    if (data.definition) document.getElementById('sel-definition').value = data.definition;
+    if (data.color) document.getElementById('sel-color').value = data.color;
+    if (data.tone) document.getElementById('sel-tone').value = data.tone;
+    if (data.env) document.getElementById('sel-env').value = data.env;
+
+    // 變數箭頭
+    if (Array.isArray(data.arrows)) {
+      data.arrows.forEach((val, idx) => {
+        if (val) setArrow(idx + 1, val);
+      });
+    }
+
+    // 判定/環境模式
+    if (data.detLR) setDet(data.detLR);
+    if (data.envMode) setEnvMode(data.envMode);
+
+    // 已定義中心
+    if (Array.isArray(data.centers)) {
+      data.centers.forEach(key => {
+        if (!definedCenters.has(key)) toggleCenter(key);
+      });
+    }
+
+    // 已勾選通道
+    if (Array.isArray(data.channels)) {
+      data.channels.forEach(chId => {
+        if (!checkedChannels.has(chId)) {
+          const chip = document.getElementById(`chip-${chId}`);
+          if (chip) {
+            const type = chip.className.match(/影響力型|創造型|突破型|策略型|情緒型/)?.[0] || '';
+            toggleChannel(chId, type);
+          }
+        }
+      });
+    }
+
+    // 交叉閘門
+    if (data.crossSun) document.getElementById('cross-c-sun').value = data.crossSun;
+    if (data.crossEarth) document.getElementById('cross-c-earth').value = data.crossEarth;
+    if (data.crossDSun) document.getElementById('cross-c-dsun').value = data.crossDSun;
+    if (data.crossDEarth) document.getElementById('cross-c-dearth').value = data.crossDEarth;
+
+    // 月交點
+    if (data.nodeSC) document.getElementById('node-s-c').value = data.nodeSC;
+    if (data.nodeSD) document.getElementById('node-s-d').value = data.nodeSD;
+    if (data.nodeNC) document.getElementById('node-n-c').value = data.nodeNC;
+    if (data.nodeND) document.getElementById('node-n-d').value = data.nodeND;
+    if (data.nodeAge) document.getElementById('node-age').value = data.nodeAge;
+
+    return true;
+  } catch (e) { return false; }
+}
+
+function clearSavedData() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
 }
 
 init();
