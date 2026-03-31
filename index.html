@@ -904,49 +904,17 @@
 
   /* ── 列印樣式（PDF 匯出用） ── */
   @media print {
-    /* 核心：強制所有元素白底深色文字 */
-    * { color: #1a1a1a !important; background-color: transparent !important; border-color: #ccc !important; box-shadow: none !important; text-shadow: none !important; }
-
-    /* 隱藏側欄和不需要的 UI */
+    /* 只處理版面，顏色全交給 JS */
     .sidebar, .toc-bar, .card-collapse-btn, .export-dropdown,
     .btn-view-results, .mobile-tabs, .freq-toggle,
     .empty-state, .confirm-overlay, header, .btn-example { display: none !important; }
-
-    /* 全版面給 main output */
-    body { background: #fff !important; margin: 0; padding: 0; font-size: 12px; line-height: 1.5; }
+    body { margin: 0; padding: 0; font-size: 12px; line-height: 1.5; }
     .layout { display: block !important; }
     .main { margin: 0 !important; padding: 12px !important; width: 100% !important; max-width: 100% !important; min-height: auto !important; }
-
-    /* 確保卡片展開 */
     .card-body-collapsible { max-height: none !important; opacity: 1 !important; padding: 14px 18px !important; overflow: visible !important; }
-    .output-card { break-inside: avoid; margin-bottom: 10px; border: 1px solid #bbb !important; border-radius: 6px !important; overflow: hidden; }
-
-    /* 卡片標題 — 加淺灰底讓它有區分 */
-    .card-header { background-color: #f0f2f5 !important; border-bottom: 1px solid #ccc !important; padding: 10px 16px !important; }
+    .output-card { break-inside: avoid; margin-bottom: 10px; }
     .card-header::after { display: none !important; }
-    .card-title { font-weight: 800 !important; font-size: 1rem !important; }
-    .card-subtitle { color: #666 !important; }
-    .card-icon { background-color: rgba(0,0,0,0.06) !important; }
-    .card-body { padding: 14px 18px !important; }
-
-    /* 標籤 */
-    .tag-strategy, .tag-nonself, .tag-percent { background-color: #f0f0f0 !important; border: 1px solid #bbb !important; }
-    .ability-group-title { background-color: #eee !important; padding: 6px 12px !important; }
-
-    /* 表格 */
-    table { border-collapse: collapse !important; width: 100% !important; }
-    table td, table th { border: 1px solid #bbb !important; padding: 6px 10px !important; }
-    table th { background-color: #f0f2f5 !important; font-weight: 700 !important; }
-
-    /* 提示框保持可見 */
-    [style*="border-left"] { border-left: 3px solid #888 !important; padding: 10px 14px !important; background-color: #f8f8f8 !important; }
-    [style*="border-radius"][style*="padding"][style*="background"] { background-color: #f5f5f5 !important; border: 1px solid #ddd !important; }
-
-    /* PDF 標題（只在列印時顯示） */
-    .pdf-print-header { display: block !important; border-bottom: 2px solid #333 !important; padding-bottom: 10px !important; margin-bottom: 14px !important; }
-
-    /* 連結 */
-    a { color: #0055aa !important; }
+    .pdf-print-header { display: block !important; }
   }
 
   /* 平常隱藏 PDF 標題 */
@@ -7897,36 +7865,43 @@ function exportPDF() {
     meta.textContent = `解析對象：${userName}　｜　${new Date().toLocaleString('zh-TW')}`;
   }
 
-  // ── 注入一個臨時 <style> 標籤，用最高優先權覆蓋所有顏色 ──
-  const printStyle = document.createElement('style');
-  printStyle.id = 'pdf-force-colors';
-  printStyle.textContent = `
-    #main-output, #main-output * {
-      color: #1a1a1a !important;
-      background-color: #ffffff !important;
-      background-image: none !important;
-      background: #ffffff !important;
-      text-shadow: none !important;
-      box-shadow: none !important;
-      -webkit-text-fill-color: #1a1a1a !important;
-    }
-    #main-output .card-header,
-    #main-output .card-header * {
-      background: #f0f2f5 !important;
-      background-color: #f0f2f5 !important;
-    }
-    #main-output .card-header .card-title { font-weight: 800 !important; }
-    #main-output .card-header .card-subtitle { color: #555 !important; -webkit-text-fill-color: #555 !important; }
-    .pdf-print-header, .pdf-print-header * { color: #1a1a1a !important; -webkit-text-fill-color: #1a1a1a !important; }
-    #pdf-print-meta { color: #666 !important; -webkit-text-fill-color: #666 !important; }
-  `;
-  document.head.appendChild(printStyle);
+  // ── 列印前：用 JS 直接改 DOM（inline !important 是最高優先權）──
+  const targets = document.querySelectorAll(
+    'body, .container, .layout, .main, #main-output, #main-output *, .pdf-print-header, .pdf-print-header *'
+  );
+  const savedStyles = [];
+  targets.forEach((el, i) => {
+    savedStyles[i] = el.getAttribute('style');
+    el.style.setProperty('color', '#1a1a1a', 'important');
+    el.style.setProperty('-webkit-text-fill-color', '#1a1a1a', 'important');
+    el.style.setProperty('background', '#ffffff', 'important');
+    el.style.setProperty('background-color', '#ffffff', 'important');
+    el.style.setProperty('background-image', 'none', 'important');
+    el.style.setProperty('box-shadow', 'none', 'important');
+    el.style.setProperty('text-shadow', 'none', 'important');
+  });
+  // 卡片標題給淺灰底
+  document.querySelectorAll('#main-output .card-header').forEach(el => {
+    el.style.setProperty('background', '#f0f2f5', 'important');
+    el.style.setProperty('background-color', '#f0f2f5', 'important');
+    el.style.setProperty('border-bottom', '1px solid #ccc', 'important');
+  });
+  // 卡片邊框
+  document.querySelectorAll('#main-output .output-card').forEach(el => {
+    el.style.setProperty('border', '1px solid #ccc', 'important');
+  });
 
-  // 呼叫瀏覽器列印
-  window.print();
-
-  // ── 列印後：移除臨時 style ──
-  printStyle.remove();
+  // 等待瀏覽器重繪後再列印
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      window.print();
+      // ── 列印後：還原所有 style ──
+      targets.forEach((el, i) => {
+        if (savedStyles[i] != null) el.setAttribute('style', savedStyles[i]);
+        else el.removeAttribute('style');
+      });
+    });
+  });
 }
 
 // ══════════════════════════════════════════
