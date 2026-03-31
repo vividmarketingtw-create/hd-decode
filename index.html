@@ -1449,6 +1449,30 @@
       </div>
     </div>
 
+    <!-- 我的其他閘門（選填） -->
+    <div class="panel">
+      <div class="panel-title">我的其他閘門（選填）</div>
+      <div style="font-size:0.75rem;color:#607888;line-height:1.5;margin-bottom:8px;">
+        如果您的人類圖中有<strong style="color:#8098b0;">散落的閘門</strong>（有啟動但沒有形成完整通道的），可以在這裡輸入。系統會自動比對這些閘門是否能幫助您橋接定義分裂。
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+        <input type="number" id="extra-gate-input" min="1" max="64" placeholder="輸入閘門號碼 1–64"
+          style="flex:1;background:#141c28;border:1px solid #2a3848;border-radius:9px;
+                 padding:8px 12px;font-size:0.85rem;color:#c0d0e0;outline:none;
+                 font-family:inherit;transition:border-color 0.2s;"
+          onfocus="this.style.borderColor='#4a80a8'"
+          onblur="this.style.borderColor='#2a3848'"
+          onkeydown="if(event.key==='Enter')addExtraGate()">
+        <button onclick="addExtraGate()"
+          style="background:#1a2838;border:1px solid #2a4060;color:#70a8c8;border-radius:9px;
+                 padding:8px 14px;font-size:0.8rem;font-weight:700;cursor:pointer;
+                 transition:all 0.15s;white-space:nowrap;"
+          onmouseover="this.style.background='#223848';this.style.color='#90c8e8'"
+          onmouseout="this.style.background='#1a2838';this.style.color='#70a8c8'">+ 加入</button>
+      </div>
+      <div id="extra-gates-list" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+    </div>
+
     <!-- 查看完整進階分析按鈕（行動裝置） -->
     <button class="btn-view-results btn-view-full" onclick="switchMobileTab('output')">
       ✦ 查看完整版進階分析結果 →
@@ -4992,6 +5016,7 @@ let detLR = null;
 let envMode = null;
 let checkedChannels = new Set();
 let definedCenters = new Set();
+let extraGates = new Set(); // 使用者手動輸入的額外閘門（散落、未成通道的）
 let freqMode = 'high'; // 'high' = 高頻  |  'shadow' = 陰影
 
 function toggleFreqMode() {
@@ -5141,6 +5166,40 @@ function setEnvMode(val) {
   update();
 }
 
+function addExtraGate() {
+  const input = document.getElementById('extra-gate-input');
+  const val = parseInt(input.value);
+  if (!val || val < 1 || val > 64) { input.value = ''; return; }
+  if (extraGates.has(val)) { input.value = ''; return; }
+  extraGates.add(val);
+  input.value = '';
+  renderExtraGates();
+  update();
+}
+
+function removeExtraGate(g) {
+  extraGates.delete(g);
+  renderExtraGates();
+  update();
+}
+
+function renderExtraGates() {
+  const list = document.getElementById('extra-gates-list');
+  if (!list) return;
+  if (extraGates.size === 0) { list.innerHTML = ''; return; }
+  const sorted = [...extraGates].sort((a,b) => a - b);
+  list.innerHTML = sorted.map(g => {
+    const gk = GATE_KEYWORDS[g];
+    const kw = gk ? (gk.zh || gk.keynote || '') : '';
+    const center = GATE_CENTER_MAP[g] || '';
+    return `<div style="display:flex;align-items:center;gap:4px;background:#141c28;border:1px solid #2a4060;border-radius:8px;padding:4px 6px 4px 10px;font-size:0.76rem;">
+      <span style="font-weight:700;color:#70a8c8;">G${g}</span>
+      <span style="color:#506878;font-size:0.68rem;">${kw}</span>
+      <button onclick="removeExtraGate(${g})" style="background:none;border:none;color:#705050;cursor:pointer;font-size:0.82rem;padding:2px 4px;line-height:1;" title="移除">✕</button>
+    </div>`;
+  }).join('');
+}
+
 function toggleChannel(id, type) {
   if (checkedChannels.has(id)) checkedChannels.delete(id);
   else checkedChannels.add(id);
@@ -5211,6 +5270,8 @@ function resetAll() {
   checkedChannels.clear();
   document.querySelectorAll('.channel-chip').forEach(c => { c.classList.remove('checked'); c.setAttribute('aria-checked','false'); });
   definedCenters.clear();
+  extraGates.clear();
+  renderExtraGates();
   Object.keys(CENTERS_DATA).forEach(key => {
     const shape = document.getElementById(`c-${key}`);
     const lbl   = document.getElementById(`t-${key}`);
@@ -6125,121 +6186,105 @@ function update() {
     });
     panel += `</div></div>`;
 
-    // 橋接通道列表（只顯示使用者已有一半的，其餘省略）
+    // 橋接通道列表（只顯示使用者已有一半的，加入天賦描述）
     if (bridge.bridges.length > 0) {
       // 建立使用者已有的閘門集合（從已啟動通道推導）
       const userGates = new Set();
       checkedChannels.forEach(chId => {
         chId.split('-').forEach(g => userGates.add(Number(g)));
       });
-      // 交叉和月交點閘門也是使用者帶有的能量
+      // 交叉、月交點閘門
       crossGates.forEach(g => userGates.add(g));
       nodeGates.forEach(g => userGates.add(g));
+      // 使用者手動輸入的額外閘門
+      extraGates.forEach(g => userGates.add(g));
 
       // 篩選：只留「至少有一端」的橋接通道
-      const halfBridges = bridge.bridges.filter(b => {
-        const g1Has = userGates.has(b.gates[0]);
-        const g2Has = userGates.has(b.gates[1]);
-        return g1Has || g2Has; // 至少有一端
-      });
-
-      // 統計數據
-      const totalBridges = bridge.bridges.length;
-      const noMatchCount = totalBridges - halfBridges.length;
+      const halfBridges = bridge.bridges.filter(b => userGates.has(b.gates[0]) || userGates.has(b.gates[1]));
+      const noMatchCount = bridge.bridges.length - halfBridges.length;
 
       panel += `<div style="margin-bottom:14px;">
         <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:8px;text-transform:uppercase;">⬡ 您最容易被接通的橋接 Your Closest Bridges</div>
         <div style="background:#0d1420;border:1px solid #1e2840;border-radius:10px;padding:14px 16px;">`;
 
       if (halfBridges.length > 0) {
-        panel += `<div style="font-size:0.82rem;color:#a0b8d0;margin-bottom:8px;line-height:1.65;">
-            以下通道可以連結您的不同島嶼，而且<strong style="color:#40a870;">您已經擁有其中一端的閘門</strong>——這代表只要遇到帶有另一端閘門的人、或行運走到那個閘門時，通道就會「接通」，您會明顯感到能量變順暢。
+        panel += `<div style="font-size:0.82rem;color:#a0b8d0;margin-bottom:10px;line-height:1.65;">
+            以下是能連結您不同島嶼的通道，而且<strong style="color:#40a870;">您已擁有其中一端的閘門</strong>。當有人帶著另一端的閘門靠近您、或行運走到那個閘門時，這條通道就會被「接通」——屆時您不只會感到能量變順暢，更會<strong style="color:#70b8d8;">體驗到這條通道代表的天賦</strong>。
           </div>
-          <div style="display:flex;flex-direction:column;gap:6px;">`;
+          <div style="display:flex;flex-direction:column;gap:10px;">`;
 
-        // 按島嶼分組
-        const groupKey = (b) => `${Math.min(b.islandA,b.islandB)}-${Math.max(b.islandA,b.islandB)}`;
-        const groups = {};
         halfBridges.forEach(b => {
-          const k = groupKey(b);
-          if (!groups[k]) groups[k] = { from: b.islandA, to: b.islandB, channels: [] };
-          groups[k].channels.push(b);
-        });
+          const g1 = b.gates[0], g2 = b.gates[1];
+          const g1Has = userGates.has(g1), g2Has = userGates.has(g2);
+          const haveGate = g1Has ? g1 : g2;
+          const needGate = g1Has ? g2 : g1;
+          const haveCenter = g1Has ? b.from : b.to;
+          const needCenter = g1Has ? b.to : b.from;
 
-        Object.values(groups).forEach(group => {
-          const islA = bridge.islands[group.from];
-          const islB = bridge.islands[group.to];
-          const clrA = islandColors[group.from % islandColors.length];
-          const clrB = islandColors[group.to % islandColors.length];
+          // 閘門來源
+          const haveIsCross = crossGates.includes(haveGate);
+          const haveIsNode = nodeGates.includes(haveGate);
+          const haveIsExtra = extraGates.has(haveGate) && !haveIsCross && !haveIsNode;
+          let haveSource = haveIsCross ? '輪迴交叉' : haveIsNode ? '月交點' : haveIsExtra ? '手動輸入' : '已啟動通道';
 
-          panel += `<div style="margin-bottom:6px;">
-            <div style="font-size:0.72rem;color:#5a7898;margin-bottom:5px;display:flex;align-items:center;gap:6px;">
-              <span style="color:${clrA};font-weight:700;">島嶼${group.from+1}</span>
-              <span style="color:#3a5060;">⟷</span>
-              <span style="color:${clrB};font-weight:700;">島嶼${group.to+1}</span>
-            </div>`;
+          // 通道資料
+          const chData = CHANNELS_DATA.find(c => c.id === b.channel);
+          const haveGK = GATE_KEYWORDS[haveGate];
+          const needGK = GATE_KEYWORDS[needGate];
+          const haveKW = haveGK ? (haveGK.zh || haveGK.keynote || '') : '';
+          const needKW = needGK ? (needGK.zh || needGK.keynote || '') : '';
 
-          group.channels.forEach(b => {
-            const g1 = b.gates[0];
-            const g2 = b.gates[1];
-            const g1Has = userGates.has(g1);
-            const g2Has = userGates.has(g2);
-            const g1IsCross = crossGates.includes(g1);
-            const g2IsCross = crossGates.includes(g2);
-            const g1IsNode = nodeGates.includes(g1);
-            const g2IsNode = nodeGates.includes(g2);
-            const anySpecial = g1IsCross || g2IsCross || g1IsNode || g2IsNode;
-            const borderClr = anySpecial ? '#e0a05060' : '#1e3028';
-            const bgClr = anySpecial ? '#1a1808' : '#0a1418';
+          const anySpecial = crossGates.includes(haveGate) || crossGates.includes(needGate) || nodeGates.includes(haveGate) || nodeGates.includes(needGate);
+          const accentClr = anySpecial ? '#e0a050' : '#70a8c8';
+          const borderClr = anySpecial ? '#e0a05040' : '#1e3028';
 
-            // 確定哪個閘門是已有的、哪個是缺少的
-            const haveGate = g1Has ? g1 : g2;
-            const needGate = g1Has ? g2 : g1;
-            const haveCenter = g1Has ? b.from : b.to;
-            const needCenter = g1Has ? b.to : b.from;
-            const haveIsCross = crossGates.includes(haveGate);
-            const haveIsNode = nodeGates.includes(haveGate);
-            const needIsCross = crossGates.includes(needGate);
-            const needIsNode = nodeGates.includes(needGate);
+          panel += `<div style="background:#0a1218;border:1px solid ${borderClr};border-radius:12px;overflow:hidden;">`;
 
-            // 來源說明（這個閘門是從哪來的）
-            let haveSource = '';
-            if (haveIsCross) haveSource = '來自輪迴交叉';
-            else if (haveIsNode) haveSource = '來自月交點';
-            else haveSource = '來自已啟動通道';
+          // 通道標題列
+          panel += `<div style="background:${anySpecial ? '#1a1808' : '#0c1620'};padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span style="font-weight:800;color:${accentClr};font-size:0.9rem;">通道 ${b.channel}</span>
+            ${chData ? '<span style="color:#8898a8;font-size:0.76rem;">' + (chData.enName || '') + '</span>' : ''}
+            <span style="color:#3a5060;font-size:0.7rem;margin-left:auto;">${b.from} ↔ ${b.to}</span>
+          </div>`;
 
-            const gk = GATE_KEYWORDS[needGate];
-            const needKeyword = gk ? (gk.zh || gk.keynote || '') : '';
+          // 接通後獲得的天賦
+          if (chData) {
+            panel += `<div style="padding:12px 14px;border-bottom:1px solid #141c28;">
+              <div style="font-size:0.7rem;font-weight:700;color:#5090b0;margin-bottom:6px;letter-spacing:0.06em;">🎯 接通後您會獲得的天賦</div>
+              <div style="font-size:0.82rem;color:#b0c8d8;line-height:1.6;margin-bottom:8px;">${chData.desc || ''}</div>`;
+            if (chData.gifts && chData.gifts.length > 0) {
+              panel += `<div style="display:flex;flex-direction:column;gap:4px;">`;
+              chData.gifts.forEach(gift => {
+                panel += `<div style="display:flex;align-items:flex-start;gap:6px;font-size:0.78rem;color:#80a8b8;line-height:1.5;">
+                  <span style="color:#40a870;flex-shrink:0;margin-top:2px;">✦</span>
+                  <span>${gift}</span>
+                </div>`;
+              });
+              panel += `</div>`;
+            }
+            if (chData.keyTheme) {
+              panel += `<div style="margin-top:8px;display:inline-block;background:#10202e;border:1px solid #2a4060;border-radius:6px;padding:3px 10px;font-size:0.72rem;font-weight:700;color:#6098c0;">核心主題：${chData.keyTheme}</div>`;
+            }
+            panel += `</div>`;
+          }
 
-            panel += `<div style="background:${bgClr};border:1px solid ${borderClr};border-radius:9px;padding:10px 14px;margin-bottom:2px;">
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-                <span style="font-weight:800;color:${anySpecial ? '#e0a050' : '#70a8c8'};font-size:0.85rem;">${b.channel}</span>
-                <span style="color:#3a5060;font-size:0.72rem;">${b.from} ↔ ${b.to}</span>
+          // 您已有的 vs 需要的鑰匙
+          panel += `<div style="padding:12px 14px;display:flex;gap:12px;flex-wrap:wrap;">
+            <div style="flex:1;min-width:140px;">
+              <div style="font-size:0.68rem;color:#4a7860;font-weight:700;margin-bottom:4px;">✓ 您已有的閘門</div>
+              <div style="background:#0a1e14;border:1px solid #2a5038;border-radius:8px;padding:8px 10px;">
+                <div style="font-weight:800;color:#60c890;font-size:0.85rem;">閘門 ${haveGate}${haveKW ? ' · ' + haveKW : ''}</div>
+                <div style="font-size:0.7rem;color:#4a8868;margin-top:3px;">${haveCenter} · 來源：${haveSource}</div>
               </div>
-              <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;">
-                <div style="flex:1;min-width:140px;">
-                  <div style="font-size:0.68rem;color:#4a7860;font-weight:700;margin-bottom:3px;">✓ 您已有</div>
-                  <div style="background:#0a1e14;border:1px solid #2a5038;border-radius:7px;padding:6px 10px;">
-                    <span style="font-weight:800;color:#60c890;font-size:0.82rem;">閘門 ${haveGate}</span>
-                    <span style="color:#4a8868;font-size:0.72rem;margin-left:4px;">（${haveCenter}）</span>
-                    ${haveIsCross ? '<span style="color:#e0a050;font-size:0.72rem;margin-left:4px;">⭐交叉</span>' : ''}
-                    ${haveIsNode ? '<span style="color:#8090c0;font-size:0.72rem;margin-left:4px;">🌙月交</span>' : ''}
-                    <div style="font-size:0.68rem;color:#3a6848;margin-top:2px;">${haveSource}</div>
-                  </div>
-                </div>
-                <div style="flex:1;min-width:140px;">
-                  <div style="font-size:0.68rem;color:#986850;font-weight:700;margin-bottom:3px;">✗ 需要的鑰匙</div>
-                  <div style="background:#1a0e0e;border:1px solid #503030;border-radius:7px;padding:6px 10px;">
-                    <span style="font-weight:800;color:#d08060;font-size:0.82rem;">閘門 ${needGate}</span>
-                    <span style="color:#886050;font-size:0.72rem;margin-left:4px;">（${needCenter}）</span>
-                    ${needIsCross ? '<span style="color:#e0a050;font-size:0.72rem;margin-left:4px;">⭐交叉</span>' : ''}
-                    ${needIsNode ? '<span style="color:#8090c0;font-size:0.72rem;margin-left:4px;">🌙月交</span>' : ''}
-                    ${needKeyword ? '<div style="font-size:0.72rem;color:#887060;margin-top:2px;">關鍵字：' + needKeyword + '</div>' : ''}
-                  </div>
-                </div>
+            </div>
+            <div style="flex:1;min-width:140px;">
+              <div style="font-size:0.68rem;color:#986850;font-weight:700;margin-bottom:4px;">🔑 需要的鑰匙</div>
+              <div style="background:#1a0e0e;border:1px solid #503030;border-radius:8px;padding:8px 10px;">
+                <div style="font-weight:800;color:#d08060;font-size:0.85rem;">閘門 ${needGate}${needKW ? ' · ' + needKW : ''}</div>
+                <div style="font-size:0.7rem;color:#886858;margin-top:3px;">${needCenter} · 帶有此閘門的人是您的「橋樑人」</div>
               </div>
-            </div>`;
-          });
+            </div>
+          </div>`;
 
           panel += `</div>`;
         });
@@ -6247,21 +6292,19 @@ function update() {
         panel += `</div>`;
 
         // 底部說明
-        panel += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #1e2840;">
-          <div style="font-size:0.76rem;color:#607888;line-height:1.6;">
-            <strong style="color:#8098b0;">白話來說：</strong>這些是您「差一步就能接通」的橋接。生活中當您遇到某個人、覺得跟他在一起特別順暢、思路特別清楚，很可能就是他帶有您「需要的鑰匙」那個閘門。這就是人類圖所說的「橋樑人」效應。
+        panel += `<div style="margin-top:12px;padding-top:10px;border-top:1px solid #1e2840;">
+          <div style="font-size:0.76rem;color:#607888;line-height:1.65;">
+            <strong style="color:#8098b0;">白話來說：</strong>當您在生活中遇到某個人，覺得跟他在一起特別順暢、特別有靈感或行動力，很可能就是他帶有您「需要的鑰匙」那個閘門，暫時幫您接通了這條通道。這就是人類圖所說的「<strong style="color:#70a8c8;">橋樑人</strong>」效應——不是依賴，而是互相啟發。
           </div>
         </div>`;
 
       } else {
-        // 沒有任何 half bridge
         panel += `<div style="font-size:0.82rem;color:#8898a8;line-height:1.65;">
-          在您目前輸入的資料中，沒有發現「已擁有一端」的橋接通道。這代表您的橋接主要透過<strong style="color:#a0b8d0;">行運（天體運行帶來的能量變化）和身邊的人</strong>來實現。<br><br>
-          <span style="color:#607888;">提示：如果您有輸入輪迴交叉和月交點的閘門，系統會自動比對是否有橋接可能。</span>
+          在您目前輸入的資料中，沒有發現「已擁有一端」的橋接通道。您的橋接主要透過<strong style="color:#a0b8d0;">行運和身邊的人</strong>來實現。<br><br>
+          <span style="color:#607888;">提示：您可以在左側「我的其他閘門」區域輸入散落的閘門（未成通道的），系統會自動比對是否有橋接可能。</span>
         </div>`;
       }
 
-      // 如果有被過濾掉的通道，簡短提及
       if (noMatchCount > 0) {
         panel += `<div style="font-size:0.7rem;color:#3a5060;margin-top:8px;padding-top:6px;border-top:1px solid #141c28;">
           另有 ${noMatchCount} 條橋接通道因雙端閘門皆不在您的圖中，已省略顯示。
@@ -7644,6 +7687,10 @@ function loadExample() {
   document.getElementById('node-s-d').value = 11;
   document.getElementById('node-n-c').value = 26;
   document.getElementById('node-n-d').value = 46;
+  // 額外散落閘門（範例）
+  extraGates.clear();
+  [16, 37, 22].forEach(g => extraGates.add(g));
+  renderExtraGates();
 
   update();
   // 行動裝置自動跳到結果頁
@@ -7863,6 +7910,7 @@ function saveFormData() {
       nodeNC: document.getElementById('node-n-c')?.value || '',
       nodeND: document.getElementById('node-n-d')?.value || '',
       nodeAge: document.getElementById('node-age')?.value || '',
+      extraGates: [...extraGates],
       savedAt: new Date().toISOString()
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -7928,6 +7976,12 @@ function restoreFormData() {
     if (data.nodeNC) document.getElementById('node-n-c').value = data.nodeNC;
     if (data.nodeND) document.getElementById('node-n-d').value = data.nodeND;
     if (data.nodeAge) document.getElementById('node-age').value = data.nodeAge;
+
+    // 額外閘門
+    if (Array.isArray(data.extraGates)) {
+      data.extraGates.forEach(g => extraGates.add(g));
+      renderExtraGates();
+    }
 
     return true;
   } catch (e) { return false; }
