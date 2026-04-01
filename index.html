@@ -1279,6 +1279,12 @@
           </div>
         </div>
       </div>
+      <!-- P3-1: 四箭頭即時視覺預覽 -->
+      <div id="arrows-preview" style="display:none;margin-top:12px;padding:14px;border-radius:12px;border:1px solid #1e3040;background:linear-gradient(135deg,#0c1420,#101828);text-align:center;">
+        <div style="font-size:0.72rem;color:#4a7090;margin-bottom:8px;font-weight:600;letter-spacing:0.1em;">箭頭組合預覽</div>
+        <div id="arrows-preview-grid" style="display:inline-grid;grid-template-columns:1fr 1fr;gap:6px 24px;"></div>
+        <div id="arrows-preview-animal" style="margin-top:8px;font-size:0.85rem;font-weight:700;color:#90c0e0;"></div>
+      </div>
     </div>
 
         <button class="step-skip-btn" onclick="toggleStep(2); openStep(3);">先略過，跳到 Step 3 →</button>
@@ -1788,6 +1794,15 @@ const TYPES = {
     advice: '面臨重大決策時，給自己完整的28天月亮週期來觀察感受，與多位不同背景的人交流，記錄感受的變化。每天所在的環境、相處的人群，比任何事情都更影響你的狀態。',
     warning: '失望感出現，通常意味著你所在的環境或社群不適合你，或者被迫在時機未到時做了倉促的決定。允許自己慢下來，信任月亮週期的智慧。',
   },
+};
+
+// P3-2: 非我狀態的針對性恢復建議
+const NOT_SELF_RECOVERY = {
+  '生產者': '感到挫折時，先暫停手邊正在做的事。問自己：「這件事還讓我有薦骨回應嗎？」如果身體的答案是沈悶的，允許自己放下。退後一步，回到讓你有「嗯！」回應的事物旁邊。挫折不是失敗，它是薦骨在告訴你方向需要調整。今晚讓自己做到精疲力竭再上床，薦骨能量需要被用完才能好好休息。',
+  '顯示生產者': '感到挫折和憤怒交織時，先深呼吸三次。你不需要一次解決所有事。問自己的薦骨：「現在最該放下哪件事？」允許自己跳過不再有回應的步驟，這不是半途而廢，而是你天生的效率。同時，在開始新行動前，花 30 秒告知身邊的人——這能大幅減少摩擦帶來的挫折。',
+  '顯示者': '憤怒升起時，這是你的信號：有什麼正在限制你的自由。問自己：「我在哪裡感覺被控制了？」不必馬上回應或反擊。給自己一段獨處的時間和空間，讓這股能量自然流動。當平靜下來後，找到需要告知的人，用你的方式重新開啟行動。記住：你的力量來自主動告知，而非請求許可。',
+  '投射者': '苦澀感浮現時，問自己：「我是不是正在推動一個沒有邀請我的局面？」退出那個讓你不被認可的場域。把注意力拉回自己的學習和熱情上。去做讓你感到智慧和洞見流動的事。正確的邀請會找到準備好的你——你不需要說服任何人看見你的價值。今天，做一件純粹取悅自己的事。',
+  '反映者': '失望浮現時，代表你可能過度吸收了不適合的環境能量。問自己：「這份失望真的是我自己的嗎？」離開當前的環境，到一個安靜、自然的空間待一會兒。給自己至少一個完整的月亮週期來消化重大感受。跟你信任的人聊聊，讓他們幫你照鏡子。你是環境的鏡子，選擇正確的環境就是選擇正確的人生。',
 };
 
 const AUTHORITIES = {
@@ -5304,7 +5319,46 @@ function setArrow(idx, val) {
     const btn = document.getElementById(`a${idx}-${v}`);
     btn.classList.toggle('active', v === val);
   });
+  updateArrowsPreview();
   update();
+}
+
+function updateArrowsPreview() {
+  const preview = document.getElementById('arrows-preview');
+  const grid = document.getElementById('arrows-preview-grid');
+  const animalEl = document.getElementById('arrows-preview-animal');
+  if (!preview || !grid) return;
+  const hasAny = arrows.some(a => a !== null);
+  preview.style.display = hasAny ? 'block' : 'none';
+  if (!hasAny) return;
+  const layout = [
+    { i:0, pos:'↖ 上左', label:'消化' },
+    { i:2, pos:'↗ 上右', label:'心智' },
+    { i:1, pos:'↙ 下左', label:'環境' },
+    { i:3, pos:'↘ 下右', label:'視角' },
+  ];
+  grid.innerHTML = layout.map(item => {
+    const a = arrows[item.i];
+    if (!a) return '<div style="background:#141c28;border:1px solid #1e2838;border-radius:8px;padding:6px 8px;text-align:center;min-width:100px;"><div style="font-size:0.65rem;color:#3a5060;">' + item.pos + '</div><div style="font-size:0.75rem;color:#3a5060;margin-top:2px;">未選擇</div></div>';
+    var isL = a === 'L';
+    var bg = isL ? '#101e30' : '#1e1028';
+    var bdr = isL ? '#3060a0' : '#8040b0';
+    var clr = isL ? '#70a8e0' : '#b080e0';
+    var arrow = isL ? '←' : '→';
+    return '<div style="background:' + bg + ';border:1px solid ' + bdr + '40;border-radius:8px;padding:6px 8px;text-align:center;min-width:100px;">'
+      + '<div style="font-size:0.6rem;color:#5a7090;">' + item.pos + '</div>'
+      + '<div style="font-size:1rem;font-weight:800;color:' + clr + ';margin:2px 0;">' + arrow + ' ' + a + '</div>'
+      + '<div style="font-size:0.65rem;color:#6a7888;">' + item.label + '</div>'
+      + '</div>';
+  }).join('');
+  // 顯示動物類型
+  const varKey = arrows.join('');
+  if (varKey.length === 4 && !varKey.includes('null') && VARIABLES[varKey]) {
+    const vd = VARIABLES[varKey];
+    animalEl.innerHTML = vd.animal + ' ' + vd.name + ' <span style="color:#5a8098;font-weight:400;">(' + vd.alias + ')</span>';
+  } else {
+    animalEl.innerHTML = '<span style="color:#3a5060;font-weight:400;">再選 ' + arrows.filter(a => !a).length + ' 個箭頭即可揭曉變數類型</span>';
+  }
 }
 
 function togglePhsHelp() {
@@ -6340,6 +6394,10 @@ function update() {
               <span class="export-icon">📝</span>
               <span><span class="export-label">匯出為純文字</span><br><span class="export-desc">TXT 格式，方便複製貼上</span></span>
             </button>
+            <button class="export-menu-item" onclick="generateIGCard(); closeExportMenu();">
+              <span class="export-icon">📸</span>
+              <span><span class="export-label">生成 IG 限動圖</span><br><span class="export-desc">1080×1080 正方形，適合社群分享</span></span>
+            </button>
           </div>
         </div>
       </div>
@@ -6373,6 +6431,10 @@ function update() {
         <div class="trait-list">${d.traits.map(t=>`<div class="trait-item"><div class="trait-dot"></div>${t}</div>`).join('')}</div>
         <div class="advice-box">💡 <strong>實踐建議：</strong>${d.advice}</div>
         <div class="advice-box" style="border-left-color:#8a6030;background:#2a2010;margin-top:8px;">⚠️ <strong>注意信號（非自我主題）：</strong>${d.warning}</div>
+        ${freqMode === 'shadow' ? `<div class="advice-box" style="border-left-color:#6a3070;background:#1e0f28;margin-top:10px;">
+          <div style="font-size:0.78rem;font-weight:700;color:#b080d8;margin-bottom:6px;">🌑 正在經歷非自我狀態嗎？試試這樣做：</div>
+          <div style="font-size:0.84rem;color:#c0a8d8;line-height:1.7;">${NOT_SELF_RECOVERY[type] || ''}</div>
+        </div>` : ''}
       </div>
     </div>`;
   }
@@ -8231,6 +8293,8 @@ function loadExample(key) {
   // 展開所有步驟讓使用者看到已填入的資料
   openStep(1); openStep(2); openStep(3);
 
+  filterAuthority();
+  updateArrowsPreview();
   update();
   if (window.innerWidth <= 900) switchMobileTab('output');
 }
@@ -8522,6 +8586,161 @@ async function exportPDF() {
     const prog = document.getElementById('pdf-progress');
     if (prog) prog.remove();
   }
+}
+
+// ══════════════════════════════════════════
+//  P2: 生成 IG 限動圖（1080×1080）
+// ══════════════════════════════════════════
+function generateIGCard() {
+  const type = document.getElementById('sel-type').value;
+  const auth = document.getElementById('sel-authority').value;
+  const role = document.getElementById('sel-role').value;
+  const def  = document.getElementById('sel-definition').value;
+  const userName = (document.getElementById('user-name')?.value || '').trim() || '你';
+  const varKey = arrows.join('');
+  const vd = (varKey.length === 4 && !varKey.includes('null')) ? VARIABLES[varKey] : null;
+  const td = type ? TYPES[type] : null;
+
+  if (!type) return alert('請至少填寫「類型」才能生成限動圖');
+
+  const S = 1080; // canvas 尺寸
+  const c = document.createElement('canvas');
+  c.width = S; c.height = S;
+  const ctx = c.getContext('2d');
+
+  // ── 背景漸層 ──
+  const bg = ctx.createLinearGradient(0, 0, S, S);
+  bg.addColorStop(0, '#060e1a');
+  bg.addColorStop(0.5, '#0d1e34');
+  bg.addColorStop(1, '#08101e');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, S, S);
+
+  // 裝飾光暈
+  const glow = ctx.createRadialGradient(S/2, S*0.38, 0, S/2, S*0.38, S*0.45);
+  glow.addColorStop(0, 'rgba(80,160,220,0.08)');
+  glow.addColorStop(1, 'rgba(80,160,220,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, S, S);
+
+  // 邊框裝飾線
+  ctx.strokeStyle = 'rgba(80,160,220,0.15)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(40, 40, S-80, S-80);
+
+  // ── 頂部：HD Decode 品牌 ──
+  ctx.fillStyle = '#4a7898';
+  ctx.font = '500 26px "Segoe UI", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('HD Decode 人類圖解讀', S/2, 100);
+
+  // ── 使用者名稱 ──
+  ctx.fillStyle = '#e0f0ff';
+  ctx.font = '700 42px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText(userName + ' 的人類圖設計', S/2, 168);
+
+  // ── 分隔線 ──
+  const lineGrad = ctx.createLinearGradient(200, 0, S-200, 0);
+  lineGrad.addColorStop(0, 'rgba(80,160,220,0)');
+  lineGrad.addColorStop(0.5, 'rgba(80,160,220,0.4)');
+  lineGrad.addColorStop(1, 'rgba(80,160,220,0)');
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(200, 200); ctx.lineTo(S-200, 200); ctx.stroke();
+
+  // ── 主體：類型大字 ──
+  let y = 280;
+  if (td) {
+    ctx.fillStyle = '#90d0f0';
+    ctx.font = '800 72px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(type, S/2, y);
+    // 英文名
+    const enName = td.name.split(' ').slice(1).join(' ');
+    ctx.fillStyle = '#4a7898';
+    ctx.font = '400 28px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(enName, S/2, y + 42);
+    y += 90;
+  }
+
+  // ── 資訊行 ──
+  const drawInfoRow = (label, value, color, yPos) => {
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#506878';
+    ctx.font = '500 24px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(label, S/2, yPos);
+    ctx.fillStyle = color;
+    ctx.font = '700 32px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(value, S/2, yPos + 40);
+    return yPos + 72;
+  };
+
+  if (td) y = drawInfoRow('策略 Strategy', td.strategy.split(' ')[0] + ' ' + td.strategy.split(' ').slice(1,3).join(' '), '#f0c040', y);
+  if (auth) y = drawInfoRow('內在權威 Authority', auth + '權威', '#5ec4b6', y);
+  if (role) y = drawInfoRow('人生角色 Profile', role, '#b0a0e0', y);
+  if (def) y = drawInfoRow('定義 Definition', def, '#80b8e0', y);
+
+  // ── 四箭頭 ──
+  if (vd) {
+    y += 10;
+    ctx.fillStyle = '#4a6878';
+    ctx.font = '500 22px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('變數 Variable', S/2, y);
+    y += 30;
+    ctx.fillStyle = '#c0e0f0';
+    ctx.font = '700 36px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(vd.animal + ' ' + vd.name, S/2, y);
+    y += 30;
+    // 四箭頭視覺
+    const arrowLabels = ['消化','環境','心智','視角'];
+    const positions = [
+      { x: S/2 - 160, y: y },
+      { x: S/2 - 55,  y: y },
+      { x: S/2 + 55,  y: y },
+      { x: S/2 + 160, y: y },
+    ];
+    arrows.forEach((a, i) => {
+      if (!a) return;
+      const px = positions[i].x;
+      const py = positions[i].y;
+      const isL = a === 'L';
+      ctx.fillStyle = isL ? '#203848' : '#302040';
+      ctx.beginPath();
+      ctx.roundRect(px - 45, py - 18, 90, 50, 10);
+      ctx.fill();
+      ctx.fillStyle = isL ? '#70a8e0' : '#b080e0';
+      ctx.font = '700 22px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText(isL ? '← L' : 'R →', px, py + 6);
+      ctx.fillStyle = '#6a7888';
+      ctx.font = '400 16px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText(arrowLabels[i], px, py + 28);
+    });
+  }
+
+  // ── 非我 & 正確信號 ──
+  if (td) {
+    const bottomY = S - 150;
+    ctx.fillStyle = '#f08080';
+    ctx.font = '600 22px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('⚠ 非自我：' + td.nonSelf.split(' ')[0], S/2 - 180, bottomY);
+    ctx.fillStyle = '#5ec4b6';
+    ctx.fillText('✦ 正確時：' + td.signature.split(' ')[0], S/2 + 180, bottomY);
+  }
+
+  // ── 底部品牌 ──
+  ctx.fillStyle = '#304050';
+  ctx.font = '400 20px "Segoe UI", system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('vividmarketingtw-create.github.io/hd-decode', S/2, S - 60);
+
+  // ── 下載 ──
+  const fileName = 'HD-Decode-' + userName + '-IG.png';
+  c.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  }, 'image/png');
 }
 
 // ══════════════════════════════════════════
