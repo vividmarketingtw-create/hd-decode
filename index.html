@@ -6396,7 +6396,7 @@ function update() {
             </button>
             <button class="export-menu-item" onclick="generateIGCard(); closeExportMenu();">
               <span class="export-icon">📸</span>
-              <span><span class="export-label">生成 IG 限動圖</span><br><span class="export-desc">1080×1080 正方形，適合社群分享</span></span>
+              <span><span class="export-label">生成 IG 限動圖</span><br><span class="export-desc">1080×1920 直式，適合 IG 限時動態分享</span></span>
             </button>
           </div>
         </div>
@@ -8589,7 +8589,7 @@ async function exportPDF() {
 }
 
 // ══════════════════════════════════════════
-//  P2: 生成 IG 限動圖（1080×1080）
+//  P2: 生成 IG 限動圖（1080×1920 直式）
 // ══════════════════════════════════════════
 function generateIGCard() {
   const type = document.getElementById('sel-type').value;
@@ -8603,134 +8603,200 @@ function generateIGCard() {
 
   if (!type) return alert('請至少填寫「類型」才能生成限動圖');
 
-  const S = 1080; // canvas 尺寸
+  const W = 1080, H = 1920;
   const c = document.createElement('canvas');
-  c.width = S; c.height = S;
+  c.width = W; c.height = H;
   const ctx = c.getContext('2d');
+  const cx = W / 2; // 中心 X
 
-  // ── 背景漸層 ──
-  const bg = ctx.createLinearGradient(0, 0, S, S);
-  bg.addColorStop(0, '#060e1a');
-  bg.addColorStop(0.5, '#0d1e34');
-  bg.addColorStop(1, '#08101e');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, S, S);
-
-  // 裝飾光暈
-  const glow = ctx.createRadialGradient(S/2, S*0.38, 0, S/2, S*0.38, S*0.45);
-  glow.addColorStop(0, 'rgba(80,160,220,0.08)');
-  glow.addColorStop(1, 'rgba(80,160,220,0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, S, S);
-
-  // 邊框裝飾線
-  ctx.strokeStyle = 'rgba(80,160,220,0.15)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(40, 40, S-80, S-80);
-
-  // ── 頂部：HD Decode 品牌 ──
-  ctx.fillStyle = '#4a7898';
-  ctx.font = '500 26px "Segoe UI", system-ui, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('HD Decode 人類圖解讀', S/2, 100);
-
-  // ── 使用者名稱 ──
-  ctx.fillStyle = '#e0f0ff';
-  ctx.font = '700 42px "Segoe UI", system-ui, sans-serif';
-  ctx.fillText(userName + ' 的人類圖設計', S/2, 168);
-
-  // ── 分隔線 ──
-  const lineGrad = ctx.createLinearGradient(200, 0, S-200, 0);
-  lineGrad.addColorStop(0, 'rgba(80,160,220,0)');
-  lineGrad.addColorStop(0.5, 'rgba(80,160,220,0.4)');
-  lineGrad.addColorStop(1, 'rgba(80,160,220,0)');
-  ctx.strokeStyle = lineGrad;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(200, 200); ctx.lineTo(S-200, 200); ctx.stroke();
-
-  // ── 主體：類型大字 ──
-  let y = 280;
-  if (td) {
-    ctx.fillStyle = '#90d0f0';
-    ctx.font = '800 72px "Segoe UI", system-ui, sans-serif';
-    ctx.fillText(type, S/2, y);
-    // 英文名
-    const enName = td.name.split(' ').slice(1).join(' ');
-    ctx.fillStyle = '#4a7898';
-    ctx.font = '400 28px "Segoe UI", system-ui, sans-serif';
-    ctx.fillText(enName, S/2, y + 42);
-    y += 90;
-  }
-
-  // ── 資訊行 ──
-  const drawInfoRow = (label, value, color, yPos) => {
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#506878';
-    ctx.font = '500 24px "Segoe UI", system-ui, sans-serif';
-    ctx.fillText(label, S/2, yPos);
-    ctx.fillStyle = color;
-    ctx.font = '700 32px "Segoe UI", system-ui, sans-serif';
-    ctx.fillText(value, S/2, yPos + 40);
-    return yPos + 72;
+  // ── 輔助函式 ──
+  const drawLine = (y) => {
+    const g = ctx.createLinearGradient(160, 0, W-160, 0);
+    g.addColorStop(0, 'rgba(80,180,240,0)');
+    g.addColorStop(0.5, 'rgba(80,180,240,0.25)');
+    g.addColorStop(1, 'rgba(80,180,240,0)');
+    ctx.strokeStyle = g; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(160, y); ctx.lineTo(W-160, y); ctx.stroke();
   };
 
-  if (td) y = drawInfoRow('策略 Strategy', td.strategy.split(' ')[0] + ' ' + td.strategy.split(' ').slice(1,3).join(' '), '#f0c040', y);
-  if (auth) y = drawInfoRow('內在權威 Authority', auth + '權威', '#5ec4b6', y);
-  if (role) y = drawInfoRow('人生角色 Profile', role, '#b0a0e0', y);
-  if (def) y = drawInfoRow('定義 Definition', def, '#80b8e0', y);
+  const roundRect = (x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+  };
 
-  // ── 四箭頭 ──
-  if (vd) {
-    y += 10;
-    ctx.fillStyle = '#4a6878';
-    ctx.font = '500 22px "Segoe UI", system-ui, sans-serif';
-    ctx.fillText('變數 Variable', S/2, y);
-    y += 30;
-    ctx.fillStyle = '#c0e0f0';
-    ctx.font = '700 36px "Segoe UI", system-ui, sans-serif';
-    ctx.fillText(vd.animal + ' ' + vd.name, S/2, y);
-    y += 30;
-    // 四箭頭視覺
-    const arrowLabels = ['消化','環境','心智','視角'];
-    const positions = [
-      { x: S/2 - 160, y: y },
-      { x: S/2 - 55,  y: y },
-      { x: S/2 + 55,  y: y },
-      { x: S/2 + 160, y: y },
-    ];
-    arrows.forEach((a, i) => {
-      if (!a) return;
-      const px = positions[i].x;
-      const py = positions[i].y;
-      const isL = a === 'L';
-      ctx.fillStyle = isL ? '#203848' : '#302040';
-      ctx.beginPath();
-      ctx.roundRect(px - 45, py - 18, 90, 50, 10);
-      ctx.fill();
-      ctx.fillStyle = isL ? '#70a8e0' : '#b080e0';
-      ctx.font = '700 22px "Segoe UI", system-ui, sans-serif';
-      ctx.fillText(isL ? '← L' : 'R →', px, py + 6);
-      ctx.fillStyle = '#6a7888';
-      ctx.font = '400 16px "Segoe UI", system-ui, sans-serif';
-      ctx.fillText(arrowLabels[i], px, py + 28);
-    });
-  }
+  // ══ 背景 ══
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#040a14');
+  bg.addColorStop(0.3, '#0c1a2e');
+  bg.addColorStop(0.7, '#0a1624');
+  bg.addColorStop(1, '#060e18');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
 
-  // ── 非我 & 正確信號 ──
-  if (td) {
-    const bottomY = S - 150;
-    ctx.fillStyle = '#f08080';
-    ctx.font = '600 22px "Segoe UI", system-ui, sans-serif';
-    ctx.fillText('⚠ 非自我：' + td.nonSelf.split(' ')[0], S/2 - 180, bottomY);
-    ctx.fillStyle = '#5ec4b6';
-    ctx.fillText('✦ 正確時：' + td.signature.split(' ')[0], S/2 + 180, bottomY);
-  }
+  // 上方大光暈
+  const glow1 = ctx.createRadialGradient(cx, 420, 0, cx, 420, 500);
+  glow1.addColorStop(0, 'rgba(60,140,220,0.07)');
+  glow1.addColorStop(1, 'rgba(60,140,220,0)');
+  ctx.fillStyle = glow1; ctx.fillRect(0, 0, W, H);
 
-  // ── 底部品牌 ──
-  ctx.fillStyle = '#304050';
-  ctx.font = '400 20px "Segoe UI", system-ui, sans-serif';
+  // 下方暖光暈
+  const glow2 = ctx.createRadialGradient(cx, 1400, 0, cx, 1400, 400);
+  glow2.addColorStop(0, 'rgba(200,160,80,0.04)');
+  glow2.addColorStop(1, 'rgba(200,160,80,0)');
+  ctx.fillStyle = glow2; ctx.fillRect(0, 0, W, H);
+
+  // 精緻邊框
+  ctx.strokeStyle = 'rgba(80,160,220,0.12)';
+  ctx.lineWidth = 1.5;
+  roundRect(50, 50, W-100, H-100, 24); ctx.stroke();
+
+  // ══ 頂部品牌 ══
+  let y = 140;
   ctx.textAlign = 'center';
-  ctx.fillText('vividmarketingtw-create.github.io/hd-decode', S/2, S - 60);
+  ctx.fillStyle = '#3a6888';
+  ctx.font = '500 28px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('HD Decode 人類圖解讀', cx, y);
+
+  // 使用者名稱
+  y += 70;
+  ctx.fillStyle = '#d0e8ff';
+  ctx.font = '700 48px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText(userName + ' 的人類圖設計', cx, y);
+
+  y += 50;
+  drawLine(y);
+
+  // ══ 類型 — 主視覺 ══
+  y += 90;
+  ctx.fillStyle = '#90d0f0';
+  ctx.font = '900 96px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText(type, cx, y);
+  y += 50;
+  if (td) {
+    const enName = td.name.split(' ').slice(1).join(' ');
+    ctx.fillStyle = '#406880';
+    ctx.font = '400 32px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(enName, cx, y);
+  }
+
+  y += 60;
+  drawLine(y);
+
+  // ══ 資訊卡片區 ══
+  const drawCard = (label, value, color, yPos) => {
+    // 半透明卡片背景
+    ctx.fillStyle = 'rgba(14,24,40,0.6)';
+    roundRect(100, yPos - 10, W - 200, 100, 16); ctx.fill();
+    ctx.strokeStyle = 'rgba(80,160,220,0.08)';
+    ctx.lineWidth = 1;
+    roundRect(100, yPos - 10, W - 200, 100, 16); ctx.stroke();
+    // 標籤
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#4a6878';
+    ctx.font = '500 24px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(label, cx, yPos + 28);
+    // 值
+    ctx.fillStyle = color;
+    ctx.font = '700 38px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(value, cx, yPos + 72);
+    return yPos + 126;
+  };
+
+  y += 40;
+  if (td) {
+    const strategyText = td.strategy.split(' Wait')[0].replace(' Inform', '');
+    y = drawCard('策略 Strategy', td.strategy, '#f0c040', y);
+  }
+  if (auth) y = drawCard('內在權威 Authority', auth + '權威', '#5ec4b6', y);
+  if (role) y = drawCard('人生角色 Profile', role, '#b0a0e0', y);
+  if (def) y = drawCard('定義 Definition', def, '#80c0e8', y);
+
+  // ══ 四箭頭區塊 ══
+  if (vd) {
+    y += 20;
+    drawLine(y);
+    y += 50;
+    ctx.fillStyle = '#406878';
+    ctx.font = '500 26px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('變數 Variable', cx, y);
+    y += 50;
+    ctx.fillStyle = '#d0e8f8';
+    ctx.font = '800 44px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(vd.animal + '  ' + vd.name, cx, y);
+    y += 16;
+    ctx.fillStyle = '#4a6878';
+    ctx.font = '400 24px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(vd.alias, cx, y + 28);
+    y += 70;
+
+    // 四箭頭 — 2×2 網格
+    const arrowLabels = ['消化', '心智', '環境', '視角'];
+    const arrowIdx    = [0, 2, 1, 3]; // 上左 上右 下左 下右
+    const gridX = [cx - 140, cx + 140];
+    const gridY = [y, y + 80];
+    const posLabels = ['上左', '上右', '下左', '下右'];
+    for (let gi = 0; gi < 4; gi++) {
+      const ai = arrowIdx[gi];
+      const a = arrows[ai];
+      if (!a) continue;
+      const gx = gridX[gi % 2];
+      const gy = gridY[Math.floor(gi / 2)];
+      const isL = a === 'L';
+      // 膠囊背景
+      ctx.fillStyle = isL ? 'rgba(20,40,70,0.7)' : 'rgba(40,20,60,0.7)';
+      roundRect(gx - 110, gy - 24, 220, 58, 14); ctx.fill();
+      ctx.strokeStyle = isL ? 'rgba(80,140,220,0.25)' : 'rgba(160,80,200,0.25)';
+      ctx.lineWidth = 1;
+      roundRect(gx - 110, gy - 24, 220, 58, 14); ctx.stroke();
+      // 箭頭文字
+      ctx.textAlign = 'center';
+      ctx.fillStyle = isL ? '#70b0e8' : '#b888e8';
+      ctx.font = '800 26px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText((isL ? '← ' : '') + a + (!isL ? ' →' : ''), gx - 30, gy + 8);
+      // 領域標籤
+      ctx.fillStyle = '#6a8098';
+      ctx.font = '500 20px "Segoe UI", system-ui, sans-serif';
+      ctx.fillText(arrowLabels[gi], gx + 50, gy + 8);
+    }
+    y = gridY[1] + 60;
+  }
+
+  // ══ 非我 & 正確信號 ══
+  if (td) {
+    const sigY = Math.max(y + 40, H - 300);
+    drawLine(sigY);
+    // 非我
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(60,20,20,0.5)';
+    roundRect(100, sigY + 24, W/2 - 130, 72, 14); ctx.fill();
+    ctx.fillStyle = '#e87070';
+    ctx.font = '700 28px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('⚠ 非自我', cx/2 + 50, sigY + 54);
+    ctx.font = '800 32px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(td.nonSelf.split(' ')[0], cx/2 + 50, sigY + 86);
+    // 正確
+    ctx.fillStyle = 'rgba(10,40,30,0.5)';
+    roundRect(W/2 + 30, sigY + 24, W/2 - 130, 72, 14); ctx.fill();
+    ctx.fillStyle = '#5ec4b6';
+    ctx.font = '700 28px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText('✦ 正確時', cx + cx/2 - 50, sigY + 54);
+    ctx.font = '800 32px "Segoe UI", system-ui, sans-serif';
+    ctx.fillText(td.signature.split(' ')[0], cx + cx/2 - 50, sigY + 86);
+  }
+
+  // ══ 底部品牌 ══
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#2a4058';
+  ctx.font = '400 22px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('用 HD Decode 解讀你的人類圖', cx, H - 110);
+  ctx.fillStyle = '#1e3040';
+  ctx.font = '400 20px "Segoe UI", system-ui, sans-serif';
+  ctx.fillText('vividmarketingtw-create.github.io/hd-decode', cx, H - 72);
 
   // ── 下載 ──
   const fileName = 'HD-Decode-' + userName + '-IG.png';
