@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HD Decode ✦ 人類圖解讀器</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   @media (max-width: 900px) { html { font-size: 17px; } }
@@ -6211,7 +6213,7 @@ function update() {
           <div class="export-menu" id="export-menu">
             <button class="export-menu-item" onclick="exportPDF(); closeExportMenu();">
               <span class="export-icon">📄</span>
-              <span><span class="export-label">匯出為 PDF</span><br><span class="export-desc">開啟報告頁面 → 按 Cmd+P 儲存為 PDF</span></span>
+              <span><span class="export-label">匯出為 PDF</span><br><span class="export-desc">保留原始設計風格，直接下載 PDF 檔案</span></span>
             </button>
             <button class="export-menu-item" onclick="exportResults(); closeExportMenu();">
               <span class="export-icon">📝</span>
@@ -8178,68 +8180,110 @@ function closeExportMenu() {
 // ══════════════════════════════════════════
 //  匯出為 PDF（保留網頁排版）
 // ══════════════════════════════════════════
-function exportPDF() {
+async function exportPDF() {
   const userName = (document.getElementById('user-name')?.value || '').trim() || '未命名';
   const mainOutput = document.getElementById('main-output');
   if (!mainOutput) return alert('請先輸入資料再匯出');
 
-  // 1) 複製內容的純文字結構（不依賴 innerHTML + inline style）
-  // 核心策略：提取文字內容，用乾淨的 HTML 重建
-  let html = mainOutput.innerHTML;
+  // 檢查函式庫是否載入
+  if (typeof html2canvas === 'undefined' || typeof jspdf === 'undefined') {
+    return alert('PDF 函式庫載入中，請稍後再試');
+  }
 
-  // 2) 移除所有 inline style（Chrome 列印引擎無法正確渲染帶 inline style 的文字）
-  html = html.replace(/\s+style\s*=\s*"[^"]*"/gi, '');
-  html = html.replace(/\s+style\s*=\s*'[^']*'/gi, '');
-  // 移除 collapsed class
-  html = html.replace(/\bcollapsed\b/g, '');
+  // 顯示進度提示
+  const overlay = document.createElement('div');
+  overlay.id = 'pdf-progress';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.75);display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = '<div style="background:#141e2e;border:1px solid #2a4a68;border-radius:16px;padding:28px 40px;text-align:center;">'
+    + '<div style="font-size:1.8rem;margin-bottom:10px;">📄</div>'
+    + '<div id="pdf-progress-text" style="font-size:0.95rem;font-weight:700;color:#90d0f0;">正在生成 PDF...</div>'
+    + '<div style="font-size:0.78rem;color:#5a7890;margin-top:6px;">截取報告畫面中，請稍候</div>'
+    + '</div>';
+  document.body.appendChild(overlay);
 
-  // 3) 用 document.write 寫入新視窗（避免 Blob URL / about:blank 問題）
-  const printWin = window.open('', '_blank');
-  if (!printWin) return alert('請允許彈出視窗後再試一次');
-  const css = [
-    '* { box-sizing: border-box; }',
-    'body { font-family: -apple-system, BlinkMacSystemFont, "Noto Sans TC", sans-serif; background: #fff; color: #222; font-size: 13px; line-height: 1.65; padding: 24px 32px; margin: 0; }',
-    '.pdf-header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 14px; margin-bottom: 20px; }',
-    '.pdf-header h2 { font-size: 1.3rem; margin: 0 0 4px; }',
-    '.pdf-header .meta { font-size: 0.85rem; color: #666; }',
-    '.output-card { border: 1px solid #ccc; border-radius: 8px; margin-bottom: 16px; overflow: visible; page-break-inside: avoid; }',
-    '.card-header { background: #f0f2f5; padding: 12px 16px; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 10px; }',
-    '.card-header::after { display: none; }',
-    '.card-title { font-weight: 800; font-size: 1rem; }',
-    '.card-subtitle { color: #666; font-size: 0.85rem; margin-top: 2px; }',
-    '.card-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.06); border-radius: 8px; font-size: 1.1rem; }',
-    '.card-body, .card-body-collapsible { padding: 16px 18px; }',
-    '.card-collapse-btn { display: none; }',
-    'p { margin-bottom: 8px; font-size: 0.9rem; }',
-    'strong, b { font-weight: 700; }',
-    'a { color: #0055aa; }',
-    'ul, ol { margin: 8px 0; padding-left: 20px; }',
-    'li { margin-bottom: 4px; font-size: 0.9rem; }',
-    'h3, h4, h5 { margin: 12px 0 6px; }',
-    'span { font-size: inherit; }',
-    '.tag-strategy, .tag-nonself, .tag-percent { display: inline-block; padding: 4px 12px; border-radius: 20px; background: #f0f0f0; border: 1px solid #bbb; font-size: 0.85rem; margin: 3px 4px 3px 0; }',
-    '.ability-group-title { background: #eee; padding: 6px 12px; border-radius: 6px; font-weight: 700; margin: 10px 0 6px; font-size: 0.85rem; }',
-    '.channel-chip { display: inline-block; padding: 4px 10px; border-radius: 6px; background: #f5f5f5; border: 1px solid #bbb; font-size: 0.82rem; margin: 2px; }',
-    'table { border-collapse: collapse; width: 100%; margin: 8px 0; }',
-    'td, th { border: 1px solid #ccc; padding: 6px 10px; text-align: left; font-size: 0.85rem; }',
-    'th { background: #f0f2f5; font-weight: 700; }',
-    '.freq-toggle, .toc-bar, .btn-view-results, .export-dropdown, .btn-example, .pdf-print-header { display: none; }',
-    '@media print { body { padding: 12px 16px; } .output-card { page-break-inside: avoid; } }'
-  ].join('\n');
+  try {
+    // 1) 展開所有摺疊卡片，記錄原本狀態
+    const collapsedBodies = mainOutput.querySelectorAll('.card-body-collapsible.collapsed');
+    collapsedBodies.forEach(b => b.classList.remove('collapsed'));
+    const collapseBtns = mainOutput.querySelectorAll('.card-collapse-btn');
+    collapseBtns.forEach(b => b.style.display = 'none');
 
-  printWin.document.open();
-  printWin.document.write('<!DOCTYPE html><html lang="zh-TW"><head><meta charset="UTF-8">');
-  printWin.document.write('<title>HD Decode 報告 - ' + userName + '</title>');
-  printWin.document.write('<style>' + css + '</style>');
-  printWin.document.write('</head><body>');
-  printWin.document.write('<div class="pdf-header"><h2>HD Decode ✦ 人類圖解讀報告</h2>');
-  printWin.document.write('<div class="meta">解析對象：' + userName + '　｜　' + new Date().toLocaleString('zh-TW') + '</div></div>');
-  printWin.document.write(html);
-  printWin.document.write('</body></html>');
-  printWin.document.close();
+    // 隱藏不需要的 UI 元素
+    const hideEls = mainOutput.querySelectorAll('.freq-toggle, .toc-bar, .export-dropdown');
+    hideEls.forEach(el => el.style.display = 'none');
 
-  // 使用者在新分頁確認內容後，按 Cmd+P / Ctrl+P 列印
-  // 不自動觸發 print()，避免 Chrome 時序問題
+    // 等待 DOM 更新
+    await new Promise(r => setTimeout(r, 300));
+
+    // 2) 用 html2canvas 截取整個輸出區域
+    const canvas = await html2canvas(mainOutput, {
+      scale: 2,              // 2x 解析度，確保清晰
+      useCORS: true,
+      backgroundColor: null, // 保留原始透明/深色背景
+      logging: false,
+      windowWidth: mainOutput.scrollWidth,
+      scrollY: -window.scrollY, // 修正捲動偏移
+    });
+
+    // 更新進度
+    document.getElementById('pdf-progress-text').textContent = '正在組裝 PDF 檔案...';
+
+    // 3) 計算 PDF 分頁
+    const { jsPDF } = jspdf;
+    const imgWidth = 210;  // A4 寬度 mm
+    const pageHeight = 297; // A4 高度 mm
+    const margin = 8;       // 邊距 mm
+    const contentWidth = imgWidth - margin * 2;
+    const imgHeight = (canvas.height * contentWidth) / canvas.width;
+    const maxContentHeight = pageHeight - margin * 2;
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+
+    if (imgHeight <= maxContentHeight) {
+      // 單頁
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, contentWidth, imgHeight);
+    } else {
+      // 多頁分割
+      let yOffset = 0;
+      let page = 0;
+      const totalPages = Math.ceil(imgHeight / maxContentHeight);
+
+      while (yOffset < imgHeight) {
+        if (page > 0) pdf.addPage();
+
+        // 用 canvas 裁切每頁的區域
+        const sliceHeight = Math.min(maxContentHeight, imgHeight - yOffset);
+        const sourceY = (yOffset / imgHeight) * canvas.height;
+        const sourceH = (sliceHeight / imgHeight) * canvas.height;
+
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sourceH;
+        const ctx = pageCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceH, 0, 0, canvas.width, sourceH);
+
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, contentWidth, sliceHeight);
+
+        yOffset += maxContentHeight;
+        page++;
+      }
+    }
+
+    // 4) 下載 PDF
+    pdf.save('HD-Decode-' + userName + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+
+    // 5) 還原 UI 狀態
+    collapsedBodies.forEach(b => b.classList.add('collapsed'));
+    collapseBtns.forEach(b => b.style.display = '');
+    hideEls.forEach(el => el.style.display = '');
+
+  } catch (err) {
+    console.error('PDF 匯出錯誤：', err);
+    alert('PDF 匯出失敗：' + err.message);
+  } finally {
+    const prog = document.getElementById('pdf-progress');
+    if (prog) prog.remove();
+  }
 }
 
 // ══════════════════════════════════════════
