@@ -807,7 +807,7 @@
     .panel { padding: 14px 13px; border-radius: 16px; }
     .output-card { border-radius: 16px; }
     .card-body { padding: 16px 15px; }
-    .card-header { padding: 14px 15px; gap: 10px; }
+    .card-header { padding: 14px 50px 14px 15px; gap: 10px; }
     .card-icon { width: 38px; height: 38px; font-size: 1.2rem; border-radius: 10px; }
     .card-title { font-size: 1.05rem; }
     .btn-reset { padding: 14px; font-size: 0.95rem; }
@@ -855,7 +855,7 @@
     html { font-size: 15px; }
     .container { padding: 8px 6px; gap: 10px; }
     .card-body { padding: 14px 12px; }
-    .card-header { padding: 12px 13px; gap: 8px; }
+    .card-header { padding: 12px 48px 12px 13px; gap: 8px; }
     .card-icon { width: 34px; height: 34px; font-size: 1.1rem; }
     .card-title { font-size: 0.98rem; }
     .trait-item { font-size: 0.84rem; gap: 7px; }
@@ -877,7 +877,7 @@
     .container { padding: 6px 4px; }
     .mobile-tab-btn { font-size: 0.78rem; padding: 11px 6px; }
     .card-body { padding: 12px 10px; }
-    .card-header { padding: 10px 11px; gap: 6px; }
+    .card-header { padding: 10px 44px 10px 11px; gap: 6px; }
     .card-icon { width: 30px; height: 30px; font-size: 1rem; border-radius: 8px; }
     .card-title { font-size: 0.92rem; }
     .trait-item { font-size: 0.8rem; gap: 6px; }
@@ -1561,12 +1561,14 @@
 
     <!-- 通道 -->
     <div class="panel">
-      <div class="panel-title">通道 Channels <span class="info-tip-btn" onclick="toggleInfoTip(this,event)" role="button" tabindex="0">?<span class="info-tip-bubble"><span class="tip-close" onclick="closeInfoTip(event)">&times;</span><span class="tip-title">通道 Channels</span>通道是連接兩個能量中心之間的路徑，由兩個閘門組成。當通道的兩端閘門都被啟動（有顏色），這個通道就被定義了，代表你穩定擁有的天賦能力。全圖共有 36 條通道，請勾選你圖表中有顏色（黑色、紅色或黑紅條紋）的通道。</div></button>（勾選已啟動）</div>
+      <div class="panel-title">通道 Channels <span class="info-tip-btn" onclick="toggleInfoTip(this,event)" role="button" tabindex="0">?<span class="info-tip-bubble"><span class="tip-close" onclick="closeInfoTip(event)">&times;</span><span class="tip-title">通道 Channels</span>通道是連接兩個能量中心之間的路徑，由兩個閘門組成。當通道的兩端閘門都被啟動（有顏色），這個通道就被定義了，代表你穩定擁有的天賦能力。全圖共有 36 條通道，請勾選你圖表中有顏色（黑色、紅色或黑紅條紋）的通道。</span></span>（勾選已啟動）</div>
       <div style="margin-bottom:10px;">
         <input type="text" id="channel-search" placeholder="🔍 搜尋通道（輸入數字或關鍵字，如 10、脾臟、領導）" oninput="filterChannels()" style="width:100%;padding:9px 14px;border-radius:8px;border:1px solid #2a4a68;background:#0d1b2e;color:#c0daf0;font-size:0.88rem;outline:none;box-sizing:border-box;" />
       </div>
       <div class="channels-grid" id="channels-grid"></div>
     </div>
+
+    <div style="height:12px;"></div>
 
     <!-- 輪迴交叉 -->
     <div class="panel">
@@ -1769,11 +1771,6 @@
         <button class="step-skip-btn" onclick="toggleStep(3); if(window.innerWidth<=900) switchMobileTab('output');">完成！查看分析結果 →</button>
       </div><!-- end step-body 3 -->
     </div><!-- end step-section 3 -->
-
-    <!-- 查看完整進階分析按鈕（行動裝置） -->
-    <button class="btn-view-results btn-view-full" onclick="switchMobileTab('output')">
-      ✦ 查看完整版進階分析結果 →
-    </button>
 
     <button class="btn-reset" onclick="confirmReset()">↺ 重置所有選項</button>
   </aside>
@@ -6587,7 +6584,7 @@ function update() {
     html += `<div class="output-card" id="card-type">
       <div class="card-header header-type" style="position:relative;">
         <div class="card-icon">◈</div>
-        <div><div class="card-title">${d.name}</div><div class="card-subtitle">人類圖類型 Type</div></div>
+        <div style="min-width:0;flex:1;"><div class="card-title">${d.name}</div><div class="card-subtitle">人類圖類型 Type</div></div>
         <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
@@ -6622,7 +6619,7 @@ function update() {
     html += `<div class="output-card" id="card-auth">
       <div class="card-header header-authority" style="position:relative;">
         <div class="card-icon">🧭</div>
-        <div><div class="card-title">${d.name}</div><div class="card-subtitle">內在權威 Inner Authority</div></div>
+        <div style="min-width:0;flex:1;"><div class="card-title">${d.name}</div><div class="card-subtitle">內在權威 Inner Authority</div></div>
         <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
@@ -6642,7 +6639,7 @@ function update() {
     html += `<div class="output-card" id="card-role">
       <div class="card-header header-role" style="position:relative;">
         <div class="card-icon">◉</div>
-        <div><div class="card-title">${d.name}</div><div class="card-subtitle">人生角色 Profile</span></div>
+        <div style="min-width:0;flex:1;"><div class="card-title">${d.name}</div><div class="card-subtitle">人生角色 Profile</div></div>
         <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
@@ -6687,7 +6684,7 @@ function update() {
     html += `<div class="output-card" id="card-def">
       <div class="card-header header-definition" style="position:relative;">
         <div class="card-icon">⬡</div>
-        <div><div class="card-title">${d.name}</div><div class="card-subtitle">定義 Definition</span></div>
+        <div style="min-width:0;flex:1;"><div class="card-title">${d.name}</div><div class="card-subtitle">定義 Definition</div></div>
         <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
@@ -7143,7 +7140,7 @@ function update() {
       html += `<div class="output-card" id="card-var">
         <div class="card-header header-variable" style="position:relative;">
           <div class="card-icon">🧬</div>
-          <div><div class="card-title">變數類型 Variable</div><div class="card-subtitle">四箭頭組合 ${varKey}　｜　${vd.pxdx}</div></div>
+          <div style="min-width:0;flex:1;"><div class="card-title">變數類型 Variable</div><div class="card-subtitle">四箭頭組合 ${varKey}　｜　${vd.pxdx}</div></div>
           <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
         </div>
         <div class="card-body">
@@ -7153,7 +7150,7 @@ function update() {
           </div>
           <div class="section-label">四箭頭視覺圖</div>
           <div style="display:flex;justify-content:center;margin-bottom:14px;">
-            <div class="input-grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;max-width:340px;width:100%;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;max-width:340px;width:100%;">
               ${(() => {
                 const layout = [
                   { i:0, pos:'↖ 上左', domain:'消化/飲食' },
@@ -7305,7 +7302,7 @@ function update() {
     html += `<div class="output-card" id="card-phs">
       <div class="card-header header-phs" style="position:relative;">
         <div class="card-icon">🌿</div>
-        <div><div class="card-title">初級健康系統 PHS</div><div class="card-subtitle">${subtitleParts.join(' · ')}</div></div>
+        <div style="min-width:0;flex:1;"><div class="card-title">初級健康系統 PHS</div><div class="card-subtitle">${subtitleParts.join(' · ')}</div></div>
         <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
@@ -7512,7 +7509,7 @@ function update() {
     html += `<div class="output-card" id="card-channels">
       <div class="card-header header-channels" style="position:relative;">
         <div class="card-icon">⚡</div>
-        <div><div class="card-title">通道分析 Channels</div><div class="card-subtitle">已選 ${checkedChannels.size} 條通道</div></div>
+        <div style="min-width:0;flex:1;"><div class="card-title">通道分析 Channels</div><div class="card-subtitle">已選 ${checkedChannels.size} 條通道</div></div>
         <button class="card-collapse-btn" onclick="toggleCardCollapse(this)" title="收合">▾</button>
       </div>
       <div class="card-body">
@@ -8078,7 +8075,7 @@ function update() {
     html += `<div class="output-card" id="card-cross">
       <div class="card-header header-cross" style="position:relative;">
         <div class="card-icon">✦</div>
-        <div>
+        <div style="min-width:0;flex:1;">
           <div class="card-title">輪迴交叉 Incarnation Cross</div>
           <div class="card-sub">靈魂主題 · 生命藍圖的四大閘門</div>
         </div>
@@ -8184,7 +8181,7 @@ function update() {
     html += `<div class="output-card" id="card-nodes">
       <div class="card-header header-nodes" style="position:relative;">
         <div class="card-icon">🌙</div>
-        <div>
+        <div style="min-width:0;flex:1;">
           <div class="card-title">人生舞台 Lunar Nodes</div>
           <div class="card-sub">月交點 · 命運的舞台佈景與人生道路</div>
         </div>
