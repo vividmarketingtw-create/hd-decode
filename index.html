@@ -262,12 +262,13 @@
   .ability-group-title.情緒型   { background: #182028; color: #8090b8; }
   .channel-checks { display: flex; flex-wrap: wrap; gap: 4px; }
   .channel-chip {
-    padding: 4px 10px; border-radius: 20px; cursor: pointer;
+    padding: 8px 12px; border-radius: 20px; cursor: pointer;
     font-size: 0.82rem; font-weight: 600;
     border: 1.5px solid #363840;
     background: #252830; color: #9aa0b4;
     transition: all 0.14s;
-    user-select: none;
+    user-select: none; min-height: 40px;
+    display: inline-flex; align-items: center;
   }
   .channel-chip:hover { border-color: #6a7888; color: #bcc4d4; background: #2e3240; }
   .channel-chip input { display: none; }
@@ -773,8 +774,15 @@
     .center-info-body { font-size: 0.84rem; }
     .center-tip { font-size: 0.78rem; padding: 7px 10px; }
     .card-subtitle { font-size: 0.82rem; }
-    .toc-bar { padding: 10px 12px; gap: 5px; }
-    .toc-item { font-size: 0.68rem; padding: 4px 10px; }
+    .toc-bar { padding: 10px 10px; gap: 4px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 12px; }
+    .toc-item { font-size: 0.68rem; padding: 5px 10px; flex-shrink: 0; min-height: 32px; display: inline-flex; align-items: center; }
+    .toc-actions { flex-shrink: 0; }
+    .arrows-grid { grid-template-columns: 1fr; gap: 8px; }
+    .input-grid-2col { grid-template-columns: 1fr !important; }
+    .arrow-field label { font-size: 0.8rem; word-break: break-word; }
+    .card-collapse-btn { width: 34px; height: 34px; right: 12px; }
+    .channel-chip { padding: 10px 14px; min-height: 42px; }
+    .gate-badge { width: 44px; height: 44px; }
   }
 
   /* ── 極小螢幕 (360px 以下) ── */
@@ -789,8 +797,26 @@
     .advice-box { padding: 10px 12px; font-size: 0.84rem; }
     .tag { font-size: 0.82rem; padding: 5px 10px; }
     .mobile-tab-btn { font-size: 0.82rem; padding: 12px 8px; }
-    .toc-item { font-size: 0.65rem; padding: 3px 8px; }
+    .toc-item { font-size: 0.65rem; padding: 3px 8px; min-height: 28px; }
     .step { font-size: 0.86rem; }
+    .animal-emoji { font-size: 1.8rem; }
+    .animal-name { font-size: 1rem; }
+    .confirm-dialog { padding: 20px 16px; }
+    .channel-chip { padding: 8px 12px; font-size: 0.8rem; }
+    .arrow-field label { font-size: 0.76rem; }
+  }
+
+  /* ── 超小螢幕 (320px 以下) ── */
+  @media (max-width: 320px) {
+    html { font-size: 14.5px; }
+    .container { padding: 6px 4px; }
+    .mobile-tab-btn { font-size: 0.78rem; padding: 11px 6px; }
+    .card-body { padding: 12px 10px; }
+    .card-header { padding: 10px 11px; gap: 6px; }
+    .card-icon { width: 30px; height: 30px; font-size: 1rem; border-radius: 8px; }
+    .card-title { font-size: 0.92rem; }
+    .trait-item { font-size: 0.8rem; gap: 6px; }
+    .centers-svg { max-width: 180px; }
   }
 
   /* ── 輸入驗證錯誤樣式 ── */
@@ -893,9 +919,9 @@
   .card-collapse-btn {
     position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
     background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7);
-    width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+    width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem; transition: all 0.18s; z-index: 2;
+    font-size: 0.8rem; transition: all 0.18s; z-index: 2;
   }
   .card-collapse-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
   .card-body-collapsible { transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, padding 0.3s; overflow: hidden; }
@@ -907,6 +933,7 @@
     background: rgba(24,28,38,0.95); border-radius: 14px;
     border: 1px solid #2a3848; position: sticky; top: 22px; z-index: 50;
     box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    align-items: center;
   }
   @media (max-width: 900px) { .toc-bar { top: 52px; } }
   .toc-item {
@@ -1327,7 +1354,7 @@
       <!-- P3-1: 四箭頭即時視覺預覽 -->
       <div id="arrows-preview" style="display:none;margin-top:12px;padding:14px;border-radius:12px;border:1px solid #1e3040;background:linear-gradient(135deg,#0c1420,#101828);text-align:center;">
         <div style="font-size:0.72rem;color:#4a7090;margin-bottom:8px;font-weight:600;letter-spacing:0.1em;">箭頭組合預覽</div>
-        <div id="arrows-preview-grid" style="display:inline-grid;grid-template-columns:1fr 1fr;gap:6px 24px;"></div>
+        <div id="arrows-preview-grid" class="input-grid-2col" style="display:inline-grid;grid-template-columns:1fr 1fr;gap:6px 24px;"></div>
         <div id="arrows-preview-animal" style="margin-top:8px;font-size:0.85rem;font-weight:700;color:#90c0e0;"></div>
       </div>
     </div>
@@ -1546,7 +1573,7 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="input-grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div class="field">
           <label style="color:#c8a040;">☉ 人格太陽 <span style="color:#888;font-size:0.72em;font-weight:400;">（黑色欄）</span></label>
           <input type="number" id="cross-c-sun" min="1" max="64" placeholder="1–64" oninput="onGateInput(this)">
@@ -1608,7 +1635,7 @@
         <span style="font-size:1rem;">☋</span> 南交點 South Node
         <span style="font-size:0.76rem;color:#4a7888;font-weight:400;">前半生舞台（約 40 歲前）</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="input-grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div class="field">
           <label style="color:#c8a040;">個性側（黑）</label>
           <input type="number" id="node-s-c" min="1" max="64" placeholder="1–64" oninput="onGateInput(this)">
@@ -1624,7 +1651,7 @@
         <span style="font-size:1rem;">☊</span> 北交點 North Node
         <span style="font-size:0.76rem;color:#3a7868;font-weight:400;">後半生指引（約 40 歲後）</span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="input-grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
         <div class="field">
           <label style="color:#c8a040;">個性側（黑）</label>
           <input type="number" id="node-n-c" min="1" max="64" placeholder="1–64" oninput="onGateInput(this)">
@@ -6428,6 +6455,7 @@ function update() {
       ${tocItems.map(t => `<span class="toc-item" onclick="document.getElementById('${t.id}')?.scrollIntoView({behavior:'smooth',block:'start'})">${t.icon} ${t.label}</span>`).join('')}
       <div class="toc-actions">
         <button class="toc-action-btn toc-btn-collapse" id="toc-collapse-btn" onclick="toggleAllCards(this.textContent.includes('展開'))">收合全部</button>
+        <!-- [匯出功能暫時關閉，待後續優化後重新啟用]
         <div class="export-dropdown">
           <button class="toc-action-btn toc-btn-export" onclick="toggleExportMenu(event)">⬇ 匯出報告</button>
           <div class="export-menu" id="export-menu">
@@ -6445,6 +6473,7 @@ function update() {
             </button>
           </div>
         </div>
+        -->
       </div>
     </div>`;
   }
@@ -7021,7 +7050,7 @@ function update() {
           </div>
           <div class="section-label">四箭頭視覺圖</div>
           <div style="display:flex;justify-content:center;margin-bottom:14px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;max-width:340px;width:100%;">
+            <div class="input-grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;max-width:340px;width:100%;">
               ${(() => {
                 const layout = [
                   { i:0, pos:'↖ 上左', domain:'消化/飲食' },
@@ -7920,7 +7949,7 @@ function update() {
           4/1 人生角色 × 並列交叉 · 生命特質整合
           <span style="display:inline-block;flex:1;height:1px;background:linear-gradient(90deg,#60b89844,transparent);"></span>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px;">
+        <div class="input-grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px;">
           <div style="padding:9px 11px;background:#0c1e1a;border-radius:9px;border-left:3px solid #50b888;">
             <div style="font-size:0.74rem;font-weight:700;color:#50a880;letter-spacing:0.06em;margin-bottom:4px;">🏛 中流砥柱</div>
             <div style="font-size:0.79rem;color:#78b098;line-height:1.55;">社群中可靠的知識權威。龐大的知識資料庫是你最強資產，穩定的自信感是你給世界的禮物。</div>
