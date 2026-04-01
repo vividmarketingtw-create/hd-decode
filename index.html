@@ -171,6 +171,10 @@
     font-size: 0.7rem; color: #507090; transition: transform 0.25s;
   }
   .step-header.open .step-arrow { transform: rotate(180deg); color: #80c0e0; }
+  /* Step 完成狀態 */
+  .step-header.step-done .step-num { background: #0d4030; border-color: #2ecc71; color: #2ecc71; }
+  .step-header.step-done .step-title { color: #6dd5a0; }
+  .step-header.step-done .step-badge { background: #0d3028; color: #2ecc71; border-color: #1a5040; }
   .step-body {
     overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, padding 0.2s;
     max-height: 0; opacity: 0; padding: 0 0;
@@ -1062,7 +1066,7 @@
       <div class="panel-title">基本參數</div>
       <div class="field">
         <label class="field-required">類型 Type</label>
-        <select id="sel-type" onchange="update()">
+        <select id="sel-type" onchange="filterAuthority(); update()">
           <option value="">— 請選擇 —</option>
           <option value="生產者">生產者 Generator</option>
           <option value="顯示生產者">顯示生產者 Manifesting Generator</option>
@@ -1411,6 +1415,9 @@
     <!-- 通道 -->
     <div class="panel">
       <div class="panel-title">通道 Channels（勾選已啟動）</div>
+      <div style="margin-bottom:10px;">
+        <input type="text" id="channel-search" placeholder="🔍 搜尋通道（輸入數字或關鍵字，如 10、脾臟、領導）" oninput="filterChannels()" style="width:100%;padding:9px 14px;border-radius:8px;border:1px solid #2a4a68;background:#0d1b2e;color:#c0daf0;font-size:0.88rem;outline:none;box-sizing:border-box;" />
+      </div>
       <div class="channels-grid" id="channels-grid"></div>
     </div>
 
@@ -5025,7 +5032,7 @@ const LUNAR_NODES_GUIDE = {
 
 const CENTERS_DATA = {
   '頭腦': {
-    enName:'Head', color:'#a78bfa', textLight:false,
+    enName:'Head', color:'#f5d630', textLight:false,
     role:'思考壓力中心',
     defined:{
       core:'持續產生思考壓力和靈感，有固定的問題意識與探究衝動，不易被他人的問題干擾。',
@@ -5039,7 +5046,7 @@ const CENTERS_DATA = {
     }
   },
   '邏輯腦': {
-    enName:'Ajna', color:'#fcd34d', textLight:false,
+    enName:'Ajna', color:'#5fa55a', textLight:true,
     role:'概念與信仰中心',
     defined:{
       core:'固定且一致的思考方式，有獨特的世界觀與分析邏輯，可以信任自己的判斷框架。',
@@ -5053,7 +5060,7 @@ const CENTERS_DATA = {
     }
   },
   '喉嚨': {
-    enName:'Throat', color:'#b45309', textLight:true,
+    enName:'Throat', color:'#c4722b', textLight:true,
     role:'表達與顯化中心',
     defined:{
       core:'一致的表達方式，有獨特的聲音和說話風格，表達能量穩定，言語帶有辨識度。',
@@ -5067,7 +5074,7 @@ const CENTERS_DATA = {
     }
   },
   'G中心': {
-    enName:'G / Identity', color:'#f59e0b', textLight:false,
+    enName:'G / Identity', color:'#f5d630', textLight:false,
     role:'身份、方向與愛',
     defined:{
       core:'穩定的身份認同，清楚自己是誰，有固定的生命方向感，能帶領他人找到方向。',
@@ -5095,7 +5102,7 @@ const CENTERS_DATA = {
     }
   },
   '脾臟': {
-    enName:'Spleen', color:'#4d7c0f', textLight:true,
+    enName:'Spleen', color:'#a0522d', textLight:true,
     role:'直覺、健康與當下感知',
     defined:{
       core:'持續運作的脾臟直覺，身體本能清晰可靠，基礎免疫力和生命力穩定，對當下安全有感知。',
@@ -5109,7 +5116,7 @@ const CENTERS_DATA = {
     }
   },
   '薦骨': {
-    enName:'Sacral', color:'#ea580c', textLight:true,
+    enName:'Sacral', color:'#e55039', textLight:true,
     role:'生命力與持續行動能量',
     defined:{
       core:'持續的生命能量（生產者/顯示生產者），薦骨回應是核心決策依據，在投入有共鳴的事情時精力充沛。',
@@ -5123,7 +5130,7 @@ const CENTERS_DATA = {
     }
   },
   '情緒': {
-    enName:'Solar Plexus', color:'#f97316', textLight:false,
+    enName:'Solar Plexus', color:'#d4a017', textLight:false,
     role:'情緒波浪與感受中心',
     defined:{
       core:'情緒波浪持續存在，高低起伏是自然節律，在情緒波過後才能達到相對清晰，大決策需等待情緒穩定。',
@@ -5137,7 +5144,7 @@ const CENTERS_DATA = {
     }
   },
   '根部': {
-    enName:'Root', color:'#92400e', textLight:true,
+    enName:'Root', color:'#8b4513', textLight:true,
     role:'壓力能量與驅動中心',
     defined:{
       core:'持續的根部壓力感，節奏和驅動力穩定，有穩定的腎上腺素能量推動行動，節奏感強。',
@@ -5272,6 +5279,7 @@ function init() {
   });
   // 嘗試還原上次儲存的資料
   const restored = restoreFormData();
+  filterAuthority(); // 根據已還原的類型過濾權威選單
 
   // 行動裝置：頁面載入時先顯示「解析結果」tab（顯示歡迎指南）
   if (window.innerWidth <= 900) switchMobileTab('output');
@@ -5386,6 +5394,81 @@ function openStep(n) {
   const body = section.querySelector('.step-body');
   if (header && !header.classList.contains('open')) header.classList.add('open');
   if (body && !body.classList.contains('open')) body.classList.add('open');
+}
+
+// ══════════════════════════════════════════
+//  P0-1: 權威選單動態過濾
+// ══════════════════════════════════════════
+const AUTHORITY_BY_TYPE = {
+  '生產者':     ['情緒','薦骨'],
+  '顯示生產者': ['情緒','薦骨'],
+  '顯示者':     ['情緒','直覺','心臟'],
+  '投射者':     ['情緒','直覺','心臟','自我','環境'],
+  '反映者':     ['月亮'],
+};
+
+function filterAuthority() {
+  const type = document.getElementById('sel-type').value;
+  const authSel = document.getElementById('sel-authority');
+  const allowed = AUTHORITY_BY_TYPE[type] || null; // null = 全部顯示
+
+  Array.from(authSel.options).forEach(opt => {
+    if (!opt.value) return; // 保留「請選擇」
+    if (allowed) {
+      opt.hidden = !allowed.includes(opt.value);
+      opt.disabled = !allowed.includes(opt.value);
+    } else {
+      opt.hidden = false;
+      opt.disabled = false;
+    }
+  });
+
+  // 如果當前選的權威不在允許清單內，自動重置
+  if (allowed && authSel.value && !allowed.includes(authSel.value)) {
+    // 如果只有一個選項，自動選上
+    if (allowed.length === 1) {
+      authSel.value = allowed[0];
+    } else {
+      authSel.value = '';
+    }
+  }
+  // 反映者只有月亮權威，自動選定
+  if (type === '反映者') {
+    authSel.value = '月亮';
+  }
+}
+
+// ══════════════════════════════════════════
+//  P0-2: 通道搜尋篩選
+// ══════════════════════════════════════════
+function filterChannels() {
+  const query = (document.getElementById('channel-search')?.value || '').trim().toLowerCase();
+  const grid = document.getElementById('channels-grid');
+  if (!grid) return;
+
+  grid.querySelectorAll('.ability-group').forEach(group => {
+    const chips = group.querySelectorAll('.channel-chip');
+    let visibleCount = 0;
+    chips.forEach(chip => {
+      const chipId = chip.id.replace('chip-', ''); // e.g. "7-31"
+      const ch = CHANNELS_DATA.find(c => c.id === chipId);
+      if (!query) {
+        chip.style.display = '';
+        visibleCount++;
+        return;
+      }
+      // 搜尋範圍：通道編號、名稱、英文名、能量中心、電路、主題、描述
+      const searchText = [
+        ch?.id, ch?.name, ch?.enName, ch?.centers,
+        ch?.circuit, ch?.keyTheme, ch?.desc
+      ].filter(Boolean).join(' ').toLowerCase();
+      const match = searchText.includes(query);
+      chip.style.display = match ? '' : 'none';
+      if (match) visibleCount++;
+    });
+    // 如果整個分類沒有匹配結果，隱藏分類標題
+    group.style.display = visibleCount > 0 ? '' : 'none';
+  });
 }
 
 function toggleChannel(id, type) {
@@ -6064,6 +6147,44 @@ function getCrossType(role) {
   const line = parseInt(role.charAt(0));
   if (line <= 4) return 'right';                 // 1/x, 2/x, 3/x, 4/6 → 右角度
   return 'left';                                 // 5/x, 6/x → 左角
+}
+
+// ══════════════════════════════════════════
+//  P1-2: 關鍵詞高亮
+// ══════════════════════════════════════════
+const HD_KEYWORDS = {
+  // 策略關鍵詞 — 金色
+  gold: ['等待回應','等待邀請','告知','月亮週期','薦骨回應','情緒清晰','等待情緒穩定'],
+  // 非我主題 — 粉紅/警示
+  pink: ['挫折','憤怒','苦澀','失望','不滿足','焦慮','不耐煩'],
+  // 正向特質 — 青綠
+  teal: ['滿足','成功','驚喜','平靜','和平','清晰','直覺','天賦','創造力','影響力','智慧','洞察力','覺醒'],
+};
+
+function highlightKeywords(html) {
+  // 只處理文字內容，避免破壞 HTML 標籤和屬性
+  // 策略：用佔位符保護標籤，替換文字後還原
+  const tags = [];
+  let safe = html.replace(/<[^>]+>/g, m => { tags.push(m); return `\x00TAG${tags.length - 1}\x00`; });
+
+  Object.entries(HD_KEYWORDS).forEach(([colorKey, words]) => {
+    const colorMap = { gold: '#f0c040', pink: '#f08080', teal: '#5ec4b6' };
+    const c = colorMap[colorKey];
+    words.forEach(w => {
+      const re = new RegExp(w, 'g');
+      safe = safe.replace(re, `\x00TAG_OPEN_${colorKey}\x00${w}\x00TAG_CLOSE\x00`);
+    });
+  });
+
+  // 還原自訂標記為 span
+  safe = safe.replace(/\x00TAG_OPEN_gold\x00/g, '<span style="color:#f0c040;font-weight:700">');
+  safe = safe.replace(/\x00TAG_OPEN_pink\x00/g, '<span style="color:#f08080;font-weight:700">');
+  safe = safe.replace(/\x00TAG_OPEN_teal\x00/g, '<span style="color:#5ec4b6;font-weight:700">');
+  safe = safe.replace(/\x00TAG_CLOSE\x00/g, '</span>');
+
+  // 還原原始 HTML 標籤
+  safe = safe.replace(/\x00TAG(\d+)\x00/g, (_, i) => tags[Number(i)]);
+  return safe;
 }
 
 // ══════════════════════════════════════════
@@ -7954,13 +8075,14 @@ function update() {
     </div>`;
   }
 
-  out.innerHTML = html;
+  out.innerHTML = highlightKeywords(html);
   // 行動裝置：不自動跳頁，由使用者按「查看結果」按鈕手動切換
 }
 
 // ══════════════════════════════════════════
 //  進度指示器更新
 // ══════════════════════════════════════════
+let _prevStepDone = { 1: false, 2: false, 3: false };
 function updateProgress() {
   const steps = {
     basic: !!(document.getElementById('sel-type').value || document.getElementById('sel-authority').value || document.getElementById('sel-definition').value),
@@ -7977,6 +8099,41 @@ function updateProgress() {
   });
   const label = document.getElementById('progress-label');
   if (label) label.textContent = `${count}/5 已填寫`;
+
+  // Step 完成狀態與自動捲動
+  const stepMap = {
+    1: steps.basic,     // Step 1：基礎必填
+    2: steps.variable || steps.centers, // Step 2：能量中心或箭頭
+    3: steps.channels || steps.cross    // Step 3：通道或交叉
+  };
+  Object.entries(stepMap).forEach(([n, done]) => {
+    const header = document.querySelector(`#step-${n} .step-header`);
+    if (!header) return;
+    if (done) {
+      header.classList.add('step-done');
+      // 第一次完成時，badge 顯示 ✓ 並自動捲到下一步
+      const badge = header.querySelector('.step-badge');
+      if (badge && !badge.dataset.originalText) {
+        badge.dataset.originalText = badge.textContent;
+      }
+      if (badge) badge.textContent = '✓ 已完成';
+      // 自動展開下一步並捲動（僅首次觸發）
+      const nNum = Number(n);
+      if (!_prevStepDone[nNum] && nNum < 3) {
+        const nextStep = document.getElementById(`step-${nNum + 1}`);
+        if (nextStep) {
+          openStep(nNum + 1);
+          setTimeout(() => nextStep.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+        }
+      }
+      _prevStepDone[nNum] = true;
+    } else {
+      header.classList.remove('step-done');
+      const badge = header.querySelector('.step-badge');
+      if (badge && badge.dataset.originalText) badge.textContent = badge.dataset.originalText;
+      _prevStepDone[Number(n)] = false;
+    }
+  });
 }
 
 // ══════════════════════════════════════════
