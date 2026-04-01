@@ -8,8 +8,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { overflow-x: hidden; }
+  body { overflow-x: hidden; max-width: 100vw; }
   @media (max-width: 900px) { html { font-size: 17px; } }
-  @media (max-width: 480px) { html { font-size: 17.5px; } }
+  @media (max-width: 480px) { html { font-size: 16px; } }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', 'Inter', sans-serif;
     -webkit-text-size-adjust: 100%;
@@ -327,7 +329,9 @@
   }
   .card-title { font-size: 1.1rem; font-weight: 800; color: white; letter-spacing: 0.01em; }
   .card-subtitle { font-size: 0.85rem; color: rgba(255,255,255,0.8); margin-top: 2px; }
-  .card-body { padding: 22px 24px; }
+  .card-body { padding: 22px 24px; overflow-wrap: anywhere; word-wrap: break-word; }
+  .card-body p, .card-body div, .card-body span { overflow-wrap: anywhere; word-wrap: break-word; }
+  .output-card { max-width: 100%; overflow: hidden; }
 
   /* Card header gradients — dark base with subtle color tints */
   .header-type      { background: linear-gradient(135deg, #141a2e 0%, #1e2844 60%, #263460 100%); border-bottom: 1px solid rgba(80,120,200,0.2); }
@@ -392,7 +396,9 @@
   .trait-item {
     display: flex; align-items: flex-start; gap: 9px;
     font-size: 0.93rem; line-height: 1.65; color: #c4ccdc;
+    min-width: 0;
   }
+  .trait-item > span { flex: 1; min-width: 0; overflow-wrap: anywhere; word-wrap: break-word; }
   .trait-dot {
     width: 7px; height: 7px; border-radius: 50%;
     background: linear-gradient(135deg, #3a7aaa, #5aaac8);
@@ -404,12 +410,15 @@
     border-radius: 0 12px 12px 0; padding: 14px 18px;
     font-size: 0.93rem; line-height: 1.7; color: #c4d8e8;
     margin-top: 12px;
+    overflow-wrap: anywhere; word-wrap: break-word;
   }
   .decision-steps { display: flex; flex-direction: column; gap: 9px; margin-top: 10px; }
   .step {
     display: flex; align-items: flex-start; gap: 11px;
     font-size: 0.93rem; line-height: 1.65; color: #c4ccdc;
+    min-width: 0;
   }
+  .step > span { flex: 1; min-width: 0; overflow-wrap: anywhere; word-wrap: break-word; }
   .step-num {
     width: 24px; height: 24px; border-radius: 50%;
     background: linear-gradient(135deg, #1e3858, #2a5080);
@@ -449,6 +458,7 @@
     display: none; background: #202430; border-radius: 12px;
     padding: 14px 15px; margin-bottom: 14px;
     border: 1.5px solid #363a4a; font-size: 0.86rem; line-height: 1.65; color: #c0c8d8;
+    overflow-wrap: anywhere; word-wrap: break-word;
   }
   .phs-help-box.open { display: block; }
   .phs-num-demo {
@@ -487,7 +497,7 @@
     border: 1px solid rgba(42,112,80,0.25);
   }
   .phs-type { font-size: 1.15rem; font-weight: 800; color: #78d0a0; margin-bottom: 6px; }
-  .phs-desc { font-size: 0.93rem; line-height: 1.7; color: #c4ccdc; }
+  .phs-desc { font-size: 0.93rem; line-height: 1.7; color: #c4ccdc; overflow-wrap: anywhere; word-wrap: break-word; }
   .phs-sub-section {
     background: #222530; border-radius: 14px; padding: 14px 16px;
     margin-bottom: 12px;
@@ -509,7 +519,9 @@
   .phs-feature-item {
     display: flex; align-items: flex-start; gap: 7px;
     font-size: 0.9rem; line-height: 1.6; color: #c4ccdc;
+    min-width: 0;
   }
+  .phs-feature-item > span { flex: 1; min-width: 0; overflow-wrap: anywhere; word-wrap: break-word; }
   .phs-feature-dot {
     width: 6px; height: 6px; border-radius: 50%;
     background: linear-gradient(135deg, #2a7050, #4aaa80);
@@ -520,6 +532,7 @@
     border-left: 3px solid #8a7040;
     border-radius: 0 10px 10px 0; padding: 12px 15px;
     font-size: 0.9rem; line-height: 1.6; color: #d4b880; margin-top: 10px;
+    overflow-wrap: anywhere; word-wrap: break-word;
   }
   .phs-mode-badge {
     display: inline-flex; align-items: center; gap: 5px;
@@ -562,14 +575,15 @@
   .center-lbl.w { fill:#fff; }
   .centers-hint { font-size:0.78rem; color:#60aed4; text-align:center; margin:4px 0 0; letter-spacing:0.03em; }
   /* Centers output card */
-  .center-card-row { display:flex; align-items:flex-start; gap:10px; padding:11px 0; border-bottom:1px solid #2a2d38; }
+  .center-card-row { display:flex; align-items:flex-start; gap:10px; padding:11px 0; border-bottom:1px solid #2a2d38; min-width:0; }
+  .center-card-row > div:last-child { min-width:0; overflow-wrap:anywhere; }
   .center-card-row:last-child { border-bottom:none; padding-bottom:0; }
   .center-dot { width:40px; min-width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:800; text-align:center; line-height:1.2; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
   .center-dot.undef { background:#2e3240; color:#6a7080; box-shadow:none; }
   .center-info-name { font-size:0.95rem; font-weight:800; color:#e4e8f0; }
   .center-info-role { font-size:0.78rem; color:#7a8498; margin-bottom:4px; font-weight:500; }
-  .center-info-body { font-size:0.88rem; color:#c4ccdc; line-height:1.6; }
-  .center-tip { font-size:0.82rem; color:#8ac0e0; background:linear-gradient(135deg,#141e2e,#1a2a3e); border-radius:8px; padding:8px 12px; margin-top:7px; line-height:1.55; border-left:2px solid #3a6898; }
+  .center-info-body { font-size:0.88rem; color:#c4ccdc; line-height:1.6; overflow-wrap:anywhere; word-wrap:break-word; }
+  .center-tip { font-size:0.82rem; color:#8ac0e0; background:linear-gradient(135deg,#141e2e,#1a2a3e); border-radius:8px; padding:8px 12px; margin-top:7px; line-height:1.55; border-left:2px solid #3a6898; overflow-wrap:anywhere; word-wrap:break-word; }
 
   /* ── EMPTY STATE ── */
   .empty-state { text-align: center; padding: 50px 20px; }
@@ -743,9 +757,40 @@
     .arrow-toggle button { padding: 13px 0; font-size: 0.88rem; }
     select { font-size: 1rem; padding: 13px 34px 13px 14px; border-radius: 12px; }
     input[type=number] { font-size: 1rem; padding: 13px 14px; border-radius: 12px; }
-    .mobile-tab-btn { padding: 13px 10px; font-size: 0.95rem; }
+    .mobile-tab-btn { padding: 13px 10px; font-size: 0.88rem; }
     .gate-row { padding: 12px 12px; }
     .gate-badge { width: 42px; height: 42px; }
+    .trait-item { font-size: 0.88rem; }
+    .advice-box { padding: 12px 14px; font-size: 0.88rem; }
+    .phs-insight { padding: 10px 13px; font-size: 0.86rem; }
+    .phs-feature-item { font-size: 0.86rem; }
+    .phs-desc { font-size: 0.88rem; }
+    .phs-result { padding: 14px 13px; }
+    .phs-sub-section { padding: 12px 13px; }
+    .center-card-row { gap: 8px; padding: 10px 0; }
+    .center-dot { width: 36px; min-width: 36px; height: 36px; font-size: 0.72rem; }
+    .center-info-name { font-size: 0.9rem; }
+    .center-info-body { font-size: 0.84rem; }
+    .center-tip { font-size: 0.78rem; padding: 7px 10px; }
+    .card-subtitle { font-size: 0.82rem; }
+    .toc-bar { padding: 10px 12px; gap: 5px; }
+    .toc-item { font-size: 0.68rem; padding: 4px 10px; }
+  }
+
+  /* ── 極小螢幕 (360px 以下) ── */
+  @media (max-width: 360px) {
+    html { font-size: 15px; }
+    .container { padding: 8px 6px; gap: 10px; }
+    .card-body { padding: 14px 12px; }
+    .card-header { padding: 12px 13px; gap: 8px; }
+    .card-icon { width: 34px; height: 34px; font-size: 1.1rem; }
+    .card-title { font-size: 0.98rem; }
+    .trait-item { font-size: 0.84rem; gap: 7px; }
+    .advice-box { padding: 10px 12px; font-size: 0.84rem; }
+    .tag { font-size: 0.82rem; padding: 5px 10px; }
+    .mobile-tab-btn { font-size: 0.82rem; padding: 12px 8px; }
+    .toc-item { font-size: 0.65rem; padding: 3px 8px; }
+    .step { font-size: 0.86rem; }
   }
 
   /* ── 輸入驗證錯誤樣式 ── */
@@ -6231,9 +6276,9 @@ function highlightKeywords(html) {
   });
 
   // 還原自訂標記為 span
-  safe = safe.replace(/\x00TAG_OPEN_gold\x00/g, '<span style="color:#f0c040;font-weight:700">');
-  safe = safe.replace(/\x00TAG_OPEN_pink\x00/g, '<span style="color:#f08080;font-weight:700">');
-  safe = safe.replace(/\x00TAG_OPEN_teal\x00/g, '<span style="color:#5ec4b6;font-weight:700">');
+  safe = safe.replace(/\x00TAG_OPEN_gold\x00/g, '<span style="color:#f0c040;font-weight:700;display:inline">');
+  safe = safe.replace(/\x00TAG_OPEN_pink\x00/g, '<span style="color:#f08080;font-weight:700;display:inline">');
+  safe = safe.replace(/\x00TAG_OPEN_teal\x00/g, '<span style="color:#5ec4b6;font-weight:700;display:inline">');
   safe = safe.replace(/\x00TAG_CLOSE\x00/g, '</span>');
 
   // 還原原始 HTML 標籤
@@ -6304,25 +6349,25 @@ function update() {
   // ── 姓名橫幅（有輸入姓名時顯示）──
   if (userName) {
     html += `
-    <div style="padding:10px 18px;background:linear-gradient(135deg,#111828,#16202e);
+    <div style="padding:10px 14px;background:linear-gradient(135deg,#111828,#16202e);
                 border:1px solid #2a3848;border-radius:12px;margin-bottom:4px;
-                display:flex;align-items:center;gap:10px;">
-      <span style="font-size:1.1rem;">👤</span>
-      <div>
+                display:flex;align-items:center;gap:10px;overflow:hidden;word-break:break-word;">
+      <span style="font-size:1.1rem;flex-shrink:0;">👤</span>
+      <div style="min-width:0;flex:1;">
         <div style="font-size:0.75rem;color:#6a8898;letter-spacing:0.1em;font-weight:700;">解析對象</div>
-        <div style="font-size:1.05rem;font-weight:800;color:#c0d8e8;letter-spacing:0.04em;">${userName}</div>
+        <div style="font-size:1.05rem;font-weight:800;color:#c0d8e8;letter-spacing:0.04em;overflow-wrap:break-word;">${userName}</div>
       </div>
-      <div style="margin-left:auto;font-size:0.75rem;color:#2a4050;letter-spacing:0.1em;font-weight:600;">HD DECODE</div>
+      <div style="margin-left:auto;font-size:0.75rem;color:#2a4050;letter-spacing:0.1em;font-weight:600;flex-shrink:0;">HD DECODE</div>
     </div>`;
   }
 
   // ── 高頻 / 陰影 切換按鈕 ──
   const isHighFreq = freqMode === 'high';
   html += `
-  <div class="freq-toggle" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 16px;border-radius:14px;
+  <div class="freq-toggle" style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;border-radius:14px;
     border:1px solid ${isHighFreq ? '#3a6a28' : '#5a3070'};
-    background:${isHighFreq ? 'linear-gradient(135deg,#0d1c0e,#142210)' : 'linear-gradient(135deg,#180d22,#201530)'};">
-    <div style="flex:1;">
+    background:${isHighFreq ? 'linear-gradient(135deg,#0d1c0e,#142210)' : 'linear-gradient(135deg,#180d22,#201530)'};flex-wrap:wrap;">
+    <div style="flex:1;min-width:0;">
       <div style="font-size:0.72rem;color:#5a6878;font-weight:600;letter-spacing:0.08em;margin-bottom:3px;">解讀視角</div>
       <div style="font-size:0.95rem;font-weight:700;color:${isHighFreq ? '#90d868' : '#c088e0'};">
         ${isHighFreq ? '🌟 高頻模式' : '🌑 陰影模式'}
@@ -6332,10 +6377,10 @@ function update() {
       </div>
     </div>
     <button onclick="toggleFreqMode()" title="${isHighFreq ? '切換至陰影模式' : '切換至高頻模式'}"
-      style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:20px;border:1px solid ${isHighFreq ? '#4a7a30' : '#5a3a6a'};
+      style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:1px solid ${isHighFreq ? '#4a7a30' : '#5a3a6a'};
              background:${isHighFreq ? '#1a3018' : '#281838'};
              color:${isHighFreq ? '#80c860' : '#b080d8'};font-size:0.78rem;font-weight:700;cursor:pointer;
-             letter-spacing:0.04em;transition:all 0.2s;white-space:nowrap;">
+             letter-spacing:0.04em;transition:all 0.2s;white-space:nowrap;flex-shrink:0;">
       ${isHighFreq ? '🌑 切換陰影' : '🌟 切換高頻'}
     </button>
   </div>`;
@@ -6428,7 +6473,7 @@ function update() {
         <div class="section-label">能量類型</div>
         <p style="font-size:0.87rem;color:#c4ccdc;margin-bottom:4px;">${d.energyType}</p>
         <div class="section-label">核心特質</div>
-        <div class="trait-list">${d.traits.map(t=>`<div class="trait-item"><div class="trait-dot"></div>${t}</div>`).join('')}</div>
+        <div class="trait-list">${d.traits.map(t=>`<div class="trait-item"><div class="trait-dot"></div><span>${t}</span></div>`).join('')}</div>
         <div class="advice-box">💡 <strong>實踐建議：</strong>${d.advice}</div>
         <div class="advice-box" style="border-left-color:#8a6030;background:#2a2010;margin-top:8px;">⚠️ <strong>注意信號（非自我主題）：</strong>${d.warning}</div>
         ${freqMode === 'shadow' ? `<div class="advice-box" style="border-left-color:#6a3070;background:#1e0f28;margin-top:10px;">
@@ -6452,7 +6497,7 @@ function update() {
         ${d.applicableTo ? `<div style="background:#202430;border:1px solid #363a4a;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.81rem;color:#8a96a8;"><strong>適用對象：</strong>${d.applicableTo}</div>` : ''}
         <p style="font-size:0.87rem;color:#c4ccdc;margin-bottom:12px;">${d.desc}</p>
         <div class="section-label">決策步驟</div>
-        <div class="decision-steps">${d.steps.map((s,i)=>`<div class="step"><div class="step-num">${i+1}</div>${s}</div>`).join('')}</div>
+        <div class="decision-steps">${d.steps.map((s,i)=>`<div class="step"><div class="step-num">${i+1}</div><span>${s}</span></div>`).join('')}</div>
         <div class="advice-box">⚠️ <strong>常見陷阱：</strong>${d.caution}</div>
         <div class="advice-box" style="border-left-color:#2a7050;background:#182820;margin-top:8px;">✨ <em>${d.mantra}</em></div>
       </div>
@@ -6476,13 +6521,13 @@ function update() {
         ${d.devSummary ? `<div style="background:#0e1e18;border:1px solid #1a3828;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:0.82rem;color:#70b898;line-height:1.5;">
           <span style="font-weight:700;color:#50b080;">人生發展定位：</span>${d.devSummary}
         </div>` : ''}
-        <div style="background:#14202e;border:1px solid #263848;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.81rem;color:#6090b0;"><strong>爻的組合：</strong>${d.lineDesc}</div>
-        <p style="font-size:0.87rem;color:#c4ccdc;margin-bottom:12px;">${d.desc}</p>
-        ${d.phase ? `<div class="section-label">人生三階段</div><div class="decision-steps">${d.phase.map((s,i)=>`<div class="step"><div class="step-num">${i+1}</div>${s}</div>`).join('')}</div>` : ''}
+        <div style="background:#14202e;border:1px solid #263848;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:0.81rem;color:#6090b0;word-break:break-word;overflow-wrap:break-word;"><strong>爻的組合：</strong>${d.lineDesc}</div>
+        <p style="font-size:0.87rem;color:#c4ccdc;margin-bottom:12px;word-break:break-word;overflow-wrap:break-word;">${d.desc}</p>
+        ${d.phase ? `<div class="section-label">人生三階段</div><div class="decision-steps">${d.phase.map((s,i)=>`<div class="step"><div class="step-num">${i+1}</div><span>${s}</span></div>`).join('')}</div>` : ''}
         <div class="section-label">核心特質</div>
-        <div class="trait-list">${d.traits.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#3060a0"></div>${t}</div>`).join('')}</div>
+        <div class="trait-list">${d.traits.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#3060a0"></div><span>${t}</span></div>`).join('')}</div>
         <div class="section-label" style="margin-top:12px;">成長挑戰</div>
-        <div class="trait-list">${d.challenges.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#883040"></div>${t}</div>`).join('')}</div>
+        <div class="trait-list">${d.challenges.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#883040"></div><span>${t}</span></div>`).join('')}</div>
         <div class="advice-box" style="border-left-color:#8a6030;background:#2a2010;margin-top:12px;">⚠️ <strong>非自我陰影：</strong>${d.shadow}</div>
         <div class="advice-box" style="border-left-color:#2a7050;background:#182820;margin-top:8px;">💡 <strong>實踐建議：</strong>${d.advice}</div>
         <div class="advice-box" style="border-left-color:#3060a0;background:#14202e;margin-top:8px;">🎯 <strong>適合方向：</strong>${d.direction}</div>
@@ -6520,9 +6565,9 @@ function update() {
         <div class="advice-box" style="border-left-color:#2a6888;background:#141e28;margin-bottom:8px;"><strong>核心概念：</strong>${d.core}</div>
         <div class="advice-box" style="border-left-color:#484878;background:#181820;margin-bottom:12px;font-size:0.83rem;"><strong>⚙️ 運作機制：</strong>${d.mechanism}</div>
         <div class="section-label">能量特質</div>
-        <div class="trait-list">${d.traits.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#2a6888"></div>${t}</div>`).join('')}</div>
+        <div class="trait-list">${d.traits.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#2a6888"></div><span>${t}</span></div>`).join('')}</div>
         <div class="section-label" style="margin-top:12px;">主要挑戰</div>
-        <div class="trait-list">${d.challenges.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#8a6030"></div>${t}</div>`).join('')}</div>
+        <div class="trait-list">${d.challenges.map(t=>`<div class="trait-item"><div class="trait-dot" style="background:#8a6030"></div><span>${t}</span></div>`).join('')}</div>
         <div class="advice-box" style="border-left-color:#883060;background:#281020;margin-top:12px;font-size:0.83rem;">💞 <strong>關係面向：</strong>${d.relationships}</div>
         <div class="advice-box" style="border-left-color:#5a6878;background:#202430;margin-top:8px;font-size:0.83rem;">🧭 <strong>決策提示：</strong>${d.decisionTip}</div>
         <div class="advice-box" style="border-left-color:#2a7050;background:#182820;margin-top:8px;">💡 <strong>實踐建議：</strong>${d.advice}</div>
@@ -6911,7 +6956,7 @@ function update() {
       // 決策 SOP
       panel += `<div style="margin-bottom:14px;">
         <div style="font-size:0.7rem;font-weight:700;color:#5a7898;letter-spacing:0.1em;margin-bottom:10px;text-transform:uppercase;">✦ 您的決策 SOP（標準作業流程）</div>
-        <div class="decision-steps">${synth.sop.map((s,i) => '<div class="step"><div class="step-num">' + (i+1) + '</div>' + s + '</div>').join('')}</div>
+        <div class="decision-steps">${synth.sop.map((s,i) => '<div class="step"><div class="step-num">' + (i+1) + '</div><span>' + s + '</span></div>').join('')}</div>
       </div>`;
 
       // 常見陷阱
@@ -7045,7 +7090,7 @@ function update() {
         <span class="phs-variant-badge" style="background:${detLR==='L'?'#182e20':'#201828'};color:${detLR==='L'?'#4aaa80':'#9a70c0'};">${detLR === 'L' ? 'L　' : 'R　'}${variant.variant}</span>
         <p style="font-size:0.86rem;line-height:1.6;color:#c4ccdc;margin-bottom:10px;">${variant.core}</p>
         <div class="phs-feature-list">
-          ${variant.tips.map(t=>`<div class="phs-feature-item"><div class="phs-feature-dot"></div>${t}</div>`).join('')}
+          ${variant.tips.map(t=>`<div class="phs-feature-item"><div class="phs-feature-dot"></div><span>${t}</span></div>`).join('')}
         </div>
         <div class="phs-insight">💡 <strong>身心連結：</strong>${variant.insight}</div>
         ` : `<div style="padding:8px 12px;background:#1a2018;border:1px dashed #2a4838;border-radius:8px;font-size:0.84rem;color:#5a8868;margin-top:4px;">👆 請在上方「四箭頭」區塊選擇 L/R 方向，即可顯示您的消化細節</div>`}
@@ -7071,7 +7116,7 @@ function update() {
         <p style="font-size:0.86rem;line-height:1.6;color:#c4ccdc;margin-bottom:10px;">${cog.core}</p>
         <div style="font-size:0.83rem;font-weight:700;color:#4a90b8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">運作方式</div>
         <div class="phs-feature-list" style="margin-bottom:10px;">
-          ${cog.howItWorks.map(h=>`<div class="phs-feature-item"><div class="phs-feature-dot" style="background:#2a6888;"></div>${h}</div>`).join('')}
+          ${cog.howItWorks.map(h=>`<div class="phs-feature-item"><div class="phs-feature-dot" style="background:#2a6888;"></div><span>${h}</span></div>`).join('')}
         </div>
         <div class="advice-box" style="border-left-color:#2a6888;background:#141e28;margin-bottom:8px;">🔭 <strong>實踐建議：</strong>${cog.practice}</div>
         <div class="advice-box" style="border-left-color:#883040;background:#201018;margin-bottom:8px;">⚠️ <strong>暗影陷阱：</strong>${cog.shadow}</div>
@@ -7093,7 +7138,7 @@ function update() {
         <p style="font-size:0.86rem;line-height:1.6;color:#c4ccdc;margin-bottom:10px;">${modeData.desc}</p>
         <div style="font-size:0.83rem;font-weight:700;color:#7a8898;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">理想空間</div>
         <div class="phs-feature-list" style="margin-bottom:10px;">
-          ${modeData.features.map(f=>`<div class="phs-feature-item"><div class="phs-feature-dot" style="background:#5a6878;"></div>${f}</div>`).join('')}
+          ${modeData.features.map(f=>`<div class="phs-feature-item"><div class="phs-feature-dot" style="background:#5a6878;"></div><span>${f}</span></div>`).join('')}
         </div>
         <div class="advice-box" style="border-left-color:#5a6878;background:#1e2430;">🏡 <strong>身體健康提示：</strong>${envData.health}</div>
         ` : `<div style="padding:8px 12px;background:#1a1e28;border:1px dashed #2a3848;border-radius:8px;font-size:0.84rem;color:#5a7888;margin-top:4px;">👆 請在上方 PHS 區塊選擇「主動/被動」模式，即可顯示環境細節</div>`}
