@@ -184,11 +184,12 @@
     background: none; border: none; color: #5a7898; font-size: 1rem;
     cursor: pointer; padding: 2px 4px; line-height: 1;
   }
-  @media (max-width: 480px) {
+  @media (max-width: 900px) {
     .info-tip-bubble {
-      position: fixed; left: 5vw !important; right: 5vw !important;
-      top: auto !important; bottom: 20px;
-      transform: none; width: auto;
+      position: fixed; left: 4vw !important; right: 4vw !important;
+      top: auto !important; bottom: 80px;
+      transform: none; width: auto; max-width: none;
+      box-shadow: 0 -4px 30px rgba(0,0,0,0.5);
     }
     .info-tip-bubble::before { display: none; }
   }
@@ -1403,7 +1404,7 @@
       <!-- P3-1: 四箭頭即時視覺預覽 -->
       <div id="arrows-preview" style="display:none;margin-top:12px;padding:14px;border-radius:12px;border:1px solid #1e3040;background:linear-gradient(135deg,#0c1420,#101828);text-align:center;">
         <div style="font-size:0.72rem;color:#4a7090;margin-bottom:8px;font-weight:600;letter-spacing:0.1em;">箭頭組合預覽</div>
-        <div id="arrows-preview-grid" class="input-grid-2col" style="display:inline-grid;grid-template-columns:1fr 1fr;gap:6px 24px;"></div>
+        <div id="arrows-preview-grid" style="display:inline-grid;grid-template-columns:1fr 1fr;gap:6px 18px;"></div>
         <div id="arrows-preview-animal" style="margin-top:8px;font-size:0.85rem;font-weight:700;color:#90c0e0;"></div>
       </div>
     </div>
@@ -5460,13 +5461,13 @@ function updateArrowsPreview() {
   ];
   grid.innerHTML = layout.map(item => {
     const a = arrows[item.i];
-    if (!a) return '<div style="background:#141c28;border:1px solid #1e2838;border-radius:8px;padding:6px 8px;text-align:center;min-width:100px;"><div style="font-size:0.65rem;color:#3a5060;">' + item.pos + '</div><div style="font-size:0.75rem;color:#3a5060;margin-top:2px;">未選擇</div></div>';
+    if (!a) return '<div style="background:#141c28;border:1px solid #1e2838;border-radius:8px;padding:6px 8px;text-align:center;min-width:80px;"><div style="font-size:0.65rem;color:#3a5060;">' + item.pos + '</div><div style="font-size:0.75rem;color:#3a5060;margin-top:2px;">未選擇</div></div>';
     var isL = a === 'L';
     var bg = isL ? '#101e30' : '#1e1028';
     var bdr = isL ? '#3060a0' : '#8040b0';
     var clr = isL ? '#70a8e0' : '#b080e0';
     var arrow = isL ? '←' : '→';
-    return '<div style="background:' + bg + ';border:1px solid ' + bdr + '40;border-radius:8px;padding:6px 8px;text-align:center;min-width:100px;">'
+    return '<div style="background:' + bg + ';border:1px solid ' + bdr + '40;border-radius:8px;padding:6px 8px;text-align:center;min-width:80px;">'
       + '<div style="font-size:0.6rem;color:#5a7090;">' + item.pos + '</div>'
       + '<div style="font-size:1rem;font-weight:800;color:' + clr + ';margin:2px 0;">' + arrow + ' ' + a + '</div>'
       + '<div style="font-size:0.65rem;color:#6a7888;">' + item.label + '</div>'
