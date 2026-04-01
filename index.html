@@ -8206,22 +8206,29 @@ async function exportPDF() {
     const collapsedBodies = mainOutput.querySelectorAll('.card-body-collapsible.collapsed');
     collapsedBodies.forEach(b => b.classList.remove('collapsed'));
     const collapseBtns = mainOutput.querySelectorAll('.card-collapse-btn');
-    collapseBtns.forEach(b => b.style.display = 'none');
+    const collapseBtnDisplay = [];
+    collapseBtns.forEach(b => { collapseBtnDisplay.push(b.style.display); b.style.display = 'none'; });
 
-    // 隱藏不需要的 UI 元素
+    // 隱藏不需要的 UI 元素（保存原始 display 值以便正確還原）
     const hideEls = mainOutput.querySelectorAll('.freq-toggle, .toc-bar, .export-dropdown');
-    hideEls.forEach(el => el.style.display = 'none');
+    const hideElsDisplay = [];
+    hideEls.forEach(el => { hideElsDisplay.push(el.style.display); el.style.display = 'none'; });
+
+    // 也隱藏 mobile FAB
+    const fab = document.getElementById('mobile-fab');
+    const fabDisplay = fab ? fab.style.display : '';
+    if (fab) fab.style.display = 'none';
 
     // 等待 DOM 更新
-    await new Promise(r => setTimeout(r, 300));
+    await new Promise(r => setTimeout(r, 400));
 
     // 2) 用 html2canvas 截取整個輸出區域
     const canvas = await html2canvas(mainOutput, {
       scale: 2,              // 2x 解析度，確保清晰
       useCORS: true,
-      backgroundColor: null, // 保留原始透明/深色背景
+      backgroundColor: '#0a1628', // 深色背景與網站一致
       logging: false,
-      windowWidth: mainOutput.scrollWidth,
+      windowWidth: Math.max(mainOutput.scrollWidth, 900),
       scrollY: -window.scrollY, // 修正捲動偏移
     });
 
@@ -8238,18 +8245,23 @@ async function exportPDF() {
     const maxContentHeight = pageHeight - margin * 2;
 
     const pdf = new jsPDF('p', 'mm', 'a4');
+    // 設定每頁深色背景
+    const addPageBg = () => {
+      pdf.setFillColor(10, 22, 40); // #0a1628
+      pdf.rect(0, 0, imgWidth, pageHeight, 'F');
+    };
 
     if (imgHeight <= maxContentHeight) {
-      // 單頁
+      addPageBg();
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, contentWidth, imgHeight);
     } else {
       // 多頁分割
       let yOffset = 0;
       let page = 0;
-      const totalPages = Math.ceil(imgHeight / maxContentHeight);
 
       while (yOffset < imgHeight) {
         if (page > 0) pdf.addPage();
+        addPageBg();
 
         // 用 canvas 裁切每頁的區域
         const sliceHeight = Math.min(maxContentHeight, imgHeight - yOffset);
@@ -8269,18 +8281,39 @@ async function exportPDF() {
       }
     }
 
-    // 4) 下載 PDF
-    pdf.save('HD-Decode-' + userName + '-' + new Date().toISOString().slice(0,10) + '.pdf');
+    // 4) 觸發下載 — 使用 Blob URL 以確保瀏覽器觸發真實檔案下載
+    const fileName = 'HD-Decode-' + userName + '-' + new Date().toISOString().slice(0,10) + '.pdf';
+    const pdfBlob = pdf.output('blob');
+    const blobUrl = URL.createObjectURL(pdfBlob);
+    const downloadLink = document.createElement('a');
+    downloadLink.href = blobUrl;
+    downloadLink.download = fileName;
+    downloadLink.style.display = 'none';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    // 清理
+    setTimeout(() => {
+      document.body.removeChild(downloadLink);
+      URL.revokeObjectURL(blobUrl);
+    }, 1000);
 
-    // 5) 還原 UI 狀態
+    // 5) 還原 UI 狀態（使用保存的原始值）
     collapsedBodies.forEach(b => b.classList.add('collapsed'));
-    collapseBtns.forEach(b => b.style.display = '');
-    hideEls.forEach(el => el.style.display = '');
+    collapseBtns.forEach((b, i) => { b.style.display = collapseBtnDisplay[i] || ''; });
+    hideEls.forEach((el, i) => { el.style.display = hideElsDisplay[i] || ''; });
+    if (fab) fab.style.display = fabDisplay;
 
   } catch (err) {
     console.error('PDF 匯出錯誤：', err);
     alert('PDF 匯出失敗：' + err.message);
   } finally {
+    // 確保 UI 一定會還原
+    try {
+      const remainHidden = mainOutput.querySelectorAll('.freq-toggle, .toc-bar, .export-dropdown');
+      remainHidden.forEach(el => { if (el.style.display === 'none') el.style.display = ''; });
+      const remainBtns = mainOutput.querySelectorAll('.card-collapse-btn');
+      remainBtns.forEach(b => { if (b.style.display === 'none') b.style.display = ''; });
+    } catch(e) {}
     const prog = document.getElementById('pdf-progress');
     if (prog) prog.remove();
   }
