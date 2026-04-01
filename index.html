@@ -235,6 +235,7 @@
   .step-body.open {
     max-height: 5000px; opacity: 1; padding: 4px 0 0;
     border-color: #1e3040; border-radius: 0 0 12px 12px;
+    background: #0e1520;
   }
   .step-hint {
     font-size: 0.78rem; color: #5a7a90; padding: 0 14px 8px;
@@ -1244,6 +1245,11 @@
       </div><!-- end step-body 1 -->
     </div><!-- end step-section 1 -->
 
+    <!-- 查看基礎分析按鈕（行動裝置）— Step 1 之後 -->
+    <button class="btn-view-results btn-view-basic" onclick="switchMobileTab('output')">
+      📊 查看基礎分析結果 →
+    </button>
+
     <!-- ══ STEP 2：中階選填 ══ -->
     <div class="step-section" id="step-2">
       <div class="step-header" onclick="toggleStep(2)">
@@ -1413,9 +1419,9 @@
       </div><!-- end step-body 2 -->
     </div><!-- end step-section 2 -->
 
-    <!-- 查看基礎分析按鈕（行動裝置） -->
+    <!-- 查看更新結果按鈕（行動裝置）— Step 2 之後 -->
     <button class="btn-view-results btn-view-basic" onclick="switchMobileTab('output')">
-      📊 查看基礎分析結果 →
+      📊 查看完整分析結果 →
     </button>
 
     <!-- ══ STEP 3：進階選填 ══ -->
