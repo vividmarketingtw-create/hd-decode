@@ -8251,33 +8251,43 @@ async function exportPDF() {
       pdf.rect(0, 0, imgWidth, pageHeight, 'F');
     };
 
-    // ── 智慧分頁：掃描 canvas 像素，在空白/背景列切割，避免文字被切半 ──
-    // 判斷某一列是否為「安全切割列」（幾乎整列都是背景色）
-    const isSafeRow = (y) => {
-      const sampleStep = Math.max(1, Math.floor(canvas.width / 60)); // 取樣 ~60 點
-      const ctxFull = canvas.getContext('2d');
-      let bgCount = 0, total = 0;
+    // ── 智慧分頁：掃描 canvas 像素，在空白列切割，避免文字被切半 ──
+    const ctxFull = canvas.getContext('2d');
+
+    // 計算一列的「顏色變異度」— 文字列變異大，空白/背景列變異小
+    const rowVariance = (y) => {
+      const sampleStep = Math.max(1, Math.floor(canvas.width / 80));
+      const samples = [];
       for (let x = 0; x < canvas.width; x += sampleStep) {
         const px = ctxFull.getImageData(x, y, 1, 1).data;
-        // 背景色 #0a1628 ≈ (10,22,40) — 容許深色變體
-        if (px[0] < 40 && px[1] < 55 && px[2] < 75) bgCount++;
-        total++;
+        samples.push(px[0] * 0.299 + px[1] * 0.587 + px[2] * 0.114); // 亮度
       }
-      return (bgCount / total) > 0.85; // 85% 以上是背景色就算安全
+      const mean = samples.reduce((a, b) => a + b, 0) / samples.length;
+      return samples.reduce((s, v) => s + (v - mean) ** 2, 0) / samples.length;
     };
 
-    // 找到最佳切割點：從目標位置往上掃描，找到連續多列背景色的區域
+    // 找到最佳切割點：從目標位置往上掃描，找低變異度的列（文字間隙）
     const findSafeCut = (targetY) => {
-      const searchRange = Math.floor(canvas.height * 0.08); // 往上搜尋 8% 的範圍
-      const minConsecutive = 3; // 至少連續 3 列是背景色
+      const searchRange = Math.floor(canvas.height * 0.12); // 往上搜尋 12%
+      const minConsecutive = 4; // 連續 4 列低變異 = 安全
+      const varianceThreshold = 80; // 低於此值視為「均勻列」
+
+      // 第一輪：找連續低變異列
       for (let y = targetY; y > targetY - searchRange && y > 0; y--) {
         let consecutive = 0;
         for (let dy = 0; dy < minConsecutive && (y + dy) < canvas.height; dy++) {
-          if (isSafeRow(y + dy)) consecutive++; else break;
+          if (rowVariance(y + dy) < varianceThreshold) consecutive++; else break;
         }
-        if (consecutive >= minConsecutive) return y; // 找到安全切割點
+        if (consecutive >= minConsecutive) return y;
       }
-      return targetY; // 找不到就用原始位置
+
+      // 第二輪：找不到連續列，退而求其次找最低變異度的單列
+      let bestY = targetY, bestVar = Infinity;
+      for (let y = targetY; y > targetY - searchRange && y > 0; y -= 2) {
+        const v = rowVariance(y);
+        if (v < bestVar) { bestVar = v; bestY = y; }
+      }
+      return bestY;
     };
 
     if (imgHeight <= maxContentHeight) {
