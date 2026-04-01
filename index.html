@@ -8251,32 +8251,70 @@ async function exportPDF() {
       pdf.rect(0, 0, imgWidth, pageHeight, 'F');
     };
 
+    // ── 智慧分頁：掃描 canvas 像素，在空白/背景列切割，避免文字被切半 ──
+    // 判斷某一列是否為「安全切割列」（幾乎整列都是背景色）
+    const isSafeRow = (y) => {
+      const sampleStep = Math.max(1, Math.floor(canvas.width / 60)); // 取樣 ~60 點
+      const ctxFull = canvas.getContext('2d');
+      let bgCount = 0, total = 0;
+      for (let x = 0; x < canvas.width; x += sampleStep) {
+        const px = ctxFull.getImageData(x, y, 1, 1).data;
+        // 背景色 #0a1628 ≈ (10,22,40) — 容許深色變體
+        if (px[0] < 40 && px[1] < 55 && px[2] < 75) bgCount++;
+        total++;
+      }
+      return (bgCount / total) > 0.85; // 85% 以上是背景色就算安全
+    };
+
+    // 找到最佳切割點：從目標位置往上掃描，找到連續多列背景色的區域
+    const findSafeCut = (targetY) => {
+      const searchRange = Math.floor(canvas.height * 0.08); // 往上搜尋 8% 的範圍
+      const minConsecutive = 3; // 至少連續 3 列是背景色
+      for (let y = targetY; y > targetY - searchRange && y > 0; y--) {
+        let consecutive = 0;
+        for (let dy = 0; dy < minConsecutive && (y + dy) < canvas.height; dy++) {
+          if (isSafeRow(y + dy)) consecutive++; else break;
+        }
+        if (consecutive >= minConsecutive) return y; // 找到安全切割點
+      }
+      return targetY; // 找不到就用原始位置
+    };
+
     if (imgHeight <= maxContentHeight) {
       addPageBg();
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, contentWidth, imgHeight);
     } else {
-      // 多頁分割
-      let yOffset = 0;
+      // 多頁分割（智慧切割）
+      let srcY = 0; // 在 canvas 上的起始 pixel Y
       let page = 0;
+      const pxPerMm = canvas.height / imgHeight; // canvas pixels per mm
 
-      while (yOffset < imgHeight) {
+      while (srcY < canvas.height) {
         if (page > 0) pdf.addPage();
         addPageBg();
 
-        // 用 canvas 裁切每頁的區域
-        const sliceHeight = Math.min(maxContentHeight, imgHeight - yOffset);
-        const sourceY = (yOffset / imgHeight) * canvas.height;
-        const sourceH = (sliceHeight / imgHeight) * canvas.height;
+        // 目標切割位置
+        let targetEndY = srcY + Math.floor(maxContentHeight * pxPerMm);
+        let actualEndY;
+
+        if (targetEndY >= canvas.height) {
+          actualEndY = canvas.height; // 最後一頁
+        } else {
+          actualEndY = findSafeCut(targetEndY); // 智慧尋找安全切割點
+        }
+
+        const slicePxH = actualEndY - srcY;
+        const sliceMmH = slicePxH / pxPerMm;
 
         const pageCanvas = document.createElement('canvas');
         pageCanvas.width = canvas.width;
-        pageCanvas.height = sourceH;
+        pageCanvas.height = slicePxH;
         const ctx = pageCanvas.getContext('2d');
-        ctx.drawImage(canvas, 0, sourceY, canvas.width, sourceH, 0, 0, canvas.width, sourceH);
+        ctx.drawImage(canvas, 0, srcY, canvas.width, slicePxH, 0, 0, canvas.width, slicePxH);
 
-        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, contentWidth, sliceHeight);
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, contentWidth, sliceMmH);
 
-        yOffset += maxContentHeight;
+        srcY = actualEndY;
         page++;
       }
     }
