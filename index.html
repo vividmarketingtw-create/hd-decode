@@ -144,6 +144,16 @@
     box-shadow: 0 0 6px rgba(74,143,192,0.2);
   }
 
+  /* ── PANEL TOGGLE ── */
+  .panel-toggle-btn {
+    margin-left: auto; background: rgba(60,90,130,0.15);
+    border: 1px solid rgba(60,90,130,0.3); border-radius: 6px;
+    color: #6a9ac0; font-size: 0.85rem; width: 32px; height: 28px;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    transition: all 0.2s; flex-shrink: 0;
+  }
+  .panel-toggle-btn:hover { background: rgba(60,90,130,0.3); color: #a0c8e0; }
+
   /* ── INFO TOOLTIP ── */
   .info-tip-btn {
     display: inline-flex; align-items: center; justify-content: center;
@@ -220,7 +230,11 @@
   }
   .step-header.open .step-badge { background: #1a3048; color: #60a8c0; border-color: #2a5070; }
   .step-arrow {
-    font-size: 0.7rem; color: #507090; transition: transform 0.25s;
+    font-size: 1.1rem; color: #507090; transition: transform 0.25s;
+    margin-left: auto; width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; background: rgba(40,60,90,0.2);
+    flex-shrink: 0;
   }
   .step-header.open .step-arrow { transform: rotate(180deg); color: #80c0e0; }
   /* Step 完成狀態 */
@@ -972,7 +986,7 @@
     background: rgba(255,255,255,0.1); border: none; color: rgba(255,255,255,0.7);
     width: 36px; height: 36px; border-radius: 8px; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.8rem; transition: all 0.18s; z-index: 2;
+    font-size: 1rem; transition: all 0.18s; z-index: 2;
   }
   .card-collapse-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
   .card-body-collapsible { transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s, padding 0.3s; overflow: hidden; }
@@ -1415,7 +1429,6 @@
       </div>
     </div>
 
-        <button class="step-skip-btn" onclick="toggleStep(2); openStep(3);">先略過，跳到 Step 3 →</button>
       </div><!-- end step-body 2 -->
     </div><!-- end step-section 2 -->
 
@@ -1557,7 +1570,8 @@
 
     <!-- 輪迴交叉 -->
     <div class="panel">
-      <div class="panel-title">輪迴交叉 Incarnation Cross <span class="info-tip-btn" onclick="toggleInfoTip(this,event)" role="button" tabindex="0">?<span class="info-tip-bubble"><span class="tip-close" onclick="closeInfoTip(event)">&times;</span><span class="tip-title">輪迴交叉</span>輪迴交叉由四個閘門組成（人格太陽/地球 + 設計太陽/地球），代表你此生的人生目的與主題。它是人類圖中最宏觀的指引，描述你來到世界上要體驗和表達的核心課題。</span></span></div>
+      <div class="panel-title" style="cursor:pointer;" onclick="togglePanelBody(this.querySelector('.panel-toggle-btn'))">輪迴交叉 Incarnation Cross <span class="info-tip-btn" onclick="toggleInfoTip(this,event); event.stopPropagation();" role="button" tabindex="0">?<span class="info-tip-bubble"><span class="tip-close" onclick="closeInfoTip(event)">&times;</span><span class="tip-title">輪迴交叉</span>輪迴交叉由四個閘門組成（人格太陽/地球 + 設計太陽/地球），代表你此生的人生目的與主題。它是人類圖中最宏觀的指引，描述你來到世界上要體驗和表達的核心課題。</span></span><button class="panel-toggle-btn" onclick="event.stopPropagation(); togglePanelBody(this)" title="收合">▾</button></div>
+      <div class="panel-body">
 
       <button class="phs-help-btn" onclick="toggleCrossHelp()">
         🗺 如何查找四大閘門？ <span id="cross-help-arrow">▾</span>
@@ -1650,11 +1664,13 @@
       <div style="margin-top:8px;padding:9px 12px;border-radius:8px;background:#12161e;border:1px solid #1e2838;font-size:0.82rem;color:#607888;line-height:1.6;">
         💡 交叉類型會依照已選的 Profile 自動判斷（右角度 / 並列 / 左角度）
       </div>
+      </div><!-- end panel-body -->
     </div>
 
     <!-- 月交點 -->
     <div class="panel">
-      <div class="panel-title">🌙 月交點 Lunar Nodes <span class="info-tip-btn" onclick="toggleInfoTip(this,event)" role="button" tabindex="0">?<span class="info-tip-bubble"><span class="tip-close" onclick="closeInfoTip(event)">&times;</span><span class="tip-title">月交點 Lunar Nodes</span>月交點分為南交點和北交點，代表你的人生舞台環境。<strong>南交點</strong>影響前半生（約 40 歲前），<strong>北交點</strong>影響後半生。每個交點都有個性側（黑色欄）和設計側（紅色欄）的閘門。</span></span></div>
+      <div class="panel-title" style="cursor:pointer;" onclick="togglePanelBody(this.querySelector('.panel-toggle-btn'))">🌙 月交點 Lunar Nodes <span class="info-tip-btn" onclick="toggleInfoTip(this,event); event.stopPropagation();" role="button" tabindex="0">?<span class="info-tip-bubble"><span class="tip-close" onclick="closeInfoTip(event)">&times;</span><span class="tip-title">月交點 Lunar Nodes</span>月交點分為南交點和北交點，代表你的人生舞台環境。<strong>南交點</strong>影響前半生（約 40 歲前），<strong>北交點</strong>影響後半生。每個交點都有個性側（黑色欄）和設計側（紅色欄）的閘門。</span></span><button class="panel-toggle-btn" onclick="event.stopPropagation(); togglePanelBody(this)" title="收合">▾</button></div>
+      <div class="panel-body">
 
       <button class="phs-help-btn" onclick="toggleNodeHelp()">
         ☊☋ 如何查找月交點閘門？ <span id="node-help-arrow">▾</span>
@@ -1723,6 +1739,7 @@
         <label>🎂 目前年齡（選填）</label>
         <input type="number" id="node-age" min="1" max="120" placeholder="輸入年齡，自動標示所在舞台" oninput="onGateInput(this)">
       </div>
+      </div><!-- end panel-body -->
     </div>
 
     <!-- 我的其他閘門（選填） -->
@@ -8502,6 +8519,16 @@ function resetAllSilent() {
 // ══════════════════════════════════════════
 //  卡片摺疊功能
 // ══════════════════════════════════════════
+function togglePanelBody(btn) {
+  const panel = btn.closest('.panel');
+  const body = panel.querySelector('.panel-body');
+  if (!body) return;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? '' : 'none';
+  btn.textContent = isHidden ? '▾' : '▸';
+  btn.title = isHidden ? '收合' : '展開';
+}
+
 function toggleCardCollapse(btn) {
   const card = btn.closest('.output-card');
   // Find all card-body divs that are direct children
